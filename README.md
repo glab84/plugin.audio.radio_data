@@ -1,2 +1,2 @@
 # plugin.audio.radio_data
-Get web information of webradio
+Kodi music addon, webradio with web information provide by Json, xml files...
