@@ -30,7 +30,7 @@ class Radio(xbmc.Player):
         xbmc.Player.__init__(self)
 
     def PlayRadio(self, stream):
-       xbmc.log("PlayerRadio stream is %s" % stream, xbmc.LOGNOTICE)
+       xbmc.log("PlayerRadio stream is %s" % stream)
        it=It()
        it.setPath(stream)
        # in a script only ???
@@ -43,54 +43,54 @@ class Radio(xbmc.Player):
        while 1:
            if self.isPlayingAudio():
                playing_file = xbmc.Player().getPlayingFile()
-               xbmc.log("InfoDeamon playingfile is %s" % playing_file, xbmc.LOGNOTICE)
+               xbmc.log("InfoDeamon playingfile is %s" % playing_file)
                set_info(playing_file)
                xbmc.Monitor().waitForAbort(periode)
 
 def set_info(playing_file):
-    xbmc.log("get_info url is %s" % playing_file, xbmc.LOGNOTICE)
+    xbmc.log("get_info url is %s" % playing_file)
     json = ""
     #if playing_file == "http://direct.fipradio.fr/live/fip-midfi.mp3": # FIP National
     if playing_file == "http://icecast.radiofrance.fr/fip-midfi.mp3": # FIP National
-        xbmc.log("InfoDeamon FIP National", xbmc.LOGNOTICE)
+        xbmc.log("InfoDeamon FIP National")
         json = "https://api.radiofrance.fr/livemeta/pull/7"
     elif playing_file == "http://direct.fipradio.fr/live/fip-webradio1.mp3": # FIP autour du rock
-        xbmc.log("InfoDeamon FIP rock", xbmc.LOGNOTICE)
+        xbmc.log("InfoDeamon FIP rock")
         json = "https://api.radiofrance.fr/livemeta/pull/64"
     elif playing_file == "http://chai5she.cdn.dvmr.fr:80/fip-webradio5.mp3": # FIP Tout nouveau
-        xbmc.log("InfoDeamon FIP nouveau", xbmc.LOGNOTICE)
+        xbmc.log("InfoDeamon FIP nouveau")
         json = "https://api.radiofrance.fr/livemeta/pull/70"
     elif playing_file == "http://direct.fipradio.fr/live/fip-webradio4.mp3": # FIP Monde
-        xbmc.log("InfoDeamon FIP Monde", xbmc.LOGNOTICE)
+        xbmc.log("InfoDeamon FIP Monde")
         json = "https://api.radiofrance.fr/livemeta/pull/69"
     elif playing_file == "http://direct.fipradio.fr/live/fip-webradio2.mp3": # FIP Jazz
-        xbmc.log("InfoDeamon FIP Jazz", xbmc.LOGNOTICE)
+        xbmc.log("InfoDeamon FIP Jazz")
         json = "https://api.radiofrance.fr/livemeta/pull/65"
     elif playing_file == "http://direct.fipradio.fr/live/fip-webradio6.mp3": # FIP Reggae
-        xbmc.log("InfoDeamon FIP Reggae", xbmc.LOGNOTICE)
+        xbmc.log("InfoDeamon FIP Reggae")
         json = "https://api.radiofrance.fr/livemeta/pull/71"
     elif playing_file == "http://rfm-live-mp3-128.scdn.arkena.com/rfm.mp3": # RFM
-        xbmc.log("InfoDeamon RFM", xbmc.LOGNOTICE)
+        xbmc.log("InfoDeamon RFM")
         json = "http://directradio.rfm.fr/rfm/now/3"
     if json != "":
-        xbmc.log("Json %s" % json, xbmc.LOGNOTICE)
+        xbmc.log("Json %s" % json)
         try:
           if json == "http://directradio.rfm.fr/rfm/now/3":
               artist,song,fanart,year,duration,album=get_info_rfm(json)
           else:
               artist,song,fanart,year,duration,album=get_info_radiofrance(json)
-          test = xbmcgui.ListItem()
-          test.setPath(xbmc.Player().getPlayingFile())
-          test.setArt({"thumb":fanart, "fanart":fanart})
-          test.setInfo("music", {"title": song, "artist": artist, "year": year, "duration": duration, "album": album})
-          xbmc.Player().updateInfoTag(test)
+          li = xbmcgui.ListItem()
+          li.setPath(xbmc.Player().getPlayingFile())
+          li.setArt({"thumb":fanart, "fanart":fanart})
+          li.setInfo("music", {"title": song, "artist": artist, "year": year, "duration": duration, "album": album})
+          xbmc.Player().updateInfoTag(li)
           artist_debug = xbmc.Player().getMusicInfoTag().getArtist()
-          xbmc.log("InfoDeamon Test Artist debug %s" % artist_debug, xbmc.LOGNOTICE)
+          xbmc.log("InfoDeamon Test Artist debug %s" % artist_debug)
         except:
-          xbmc.log("Can't update json", xbmc.LOGNOTICE)
+          xbmc.log("Can't update json")
 
 def get_info_radiofrance(url):
-    xbmc.log("get_info url is %s" % url, xbmc.LOGNOTICE)
+    xbmc.log("get_info url is %s" % url)
     try:
       r=requests.get(url)
       info=r.json()
@@ -133,7 +133,7 @@ def get_info_radiofrance(url):
           except:
             album = ""
       duration = end - start
-      xbmc.log("Artists is %s" % artist, xbmc.LOGNOTICE)
+      xbmc.log("Artists is %s" % artist)
     except:
       song = ""
       artist = ""
@@ -146,7 +146,7 @@ def get_info_radiofrance(url):
     return artist,song,fanart,year,duration,album
 
 def get_info_rfm(url):
-    xbmc.log("get_info url is %s" % url, xbmc.LOGNOTICE)
+    xbmc.log("get_info url is %s" % url)
     # try ...
     r=requests.get(url)
     info=r.json()
@@ -172,7 +172,7 @@ def get_info_rfm(url):
       duration = v1["duration"]
     except:
       duration = ""
-    xbmc.log("Artists is %s" % artist, xbmc.LOGNOTICE)
+    xbmc.log("Artists is %s" % artist)
     return artist,song,fanart,year,duration,album
 
 def build_url(query):
@@ -251,21 +251,21 @@ def build_song_list():
     xbmcplugin.endOfDirectory(addon_handle)
     
 def play_song(url):
-    xbmc.log("url is %s" % url, xbmc.LOGNOTICE)
+    xbmc.log("url is %s" % url)
     xbmc.executebuiltin("ActivateWindow(12006)")
     WINDOW = xbmcgui.Window(12006)
 
     radio=Radio()
-    xbmc.log("PlayerRadio stream is %s" % url, xbmc.LOGNOTICE)
-    test = xbmcgui.ListItem()
-    test.setPath(url)
-    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True , listitem=test)
-    xbmc.Player().play(item=url, listitem=test)
+    xbmc.log("PlayerRadio stream is %s" % url)
+    li = xbmcgui.ListItem()
+    li.setPath(url)
+    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True , listitem=li)
+    xbmc.Player().play(item=url, listitem=li)
     xbmc.Monitor().waitForAbort(1)
     set_info(url)
 
     if WINDOW.getProperty("Radio-France-Running") == "true":
-        xbmc.log("Script already running - Not starting a new instance", xbmc.LOGNOTICE)
+        xbmc.log("Script already running - Not starting a new instance")
         exit(0)
     else:
         WINDOW.setProperty("Radio-France-Running", "true")
