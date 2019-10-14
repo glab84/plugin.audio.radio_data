@@ -54,12 +54,12 @@ def set_info(playing_file):
     if playing_file == "http://icecast.radiofrance.fr/fip-midfi.mp3": # FIP National
         xbmc.log("InfoDeamon FIP National")
         json = "https://api.radiofrance.fr/livemeta/pull/7"
+    elif playing_file == "http://direct.fipradio.fr/live/fip-webradio5.mp3": # FIP Tout nouveau
+        xbmc.log("InfoDeamon FIP nouveau")
+        json = "https://api.radiofrance.fr/livemeta/pull/70"
     elif playing_file == "http://direct.fipradio.fr/live/fip-webradio1.mp3": # FIP autour du rock
         xbmc.log("InfoDeamon FIP rock")
         json = "https://api.radiofrance.fr/livemeta/pull/64"
-    elif playing_file == "http://chai5she.cdn.dvmr.fr:80/fip-webradio5.mp3": # FIP Tout nouveau
-        xbmc.log("InfoDeamon FIP nouveau")
-        json = "https://api.radiofrance.fr/livemeta/pull/70"
     elif playing_file == "http://direct.fipradio.fr/live/fip-webradio4.mp3": # FIP Monde
         xbmc.log("InfoDeamon FIP Monde")
         json = "https://api.radiofrance.fr/livemeta/pull/69"
@@ -193,7 +193,7 @@ def build_song_list():
     song_list.append((url, li, False))
 
     title = "Fip Tout nouveau"
-    flux = "http://chai5she.cdn.dvmr.fr:80/fip-webradio5.mp3"
+    flux = "http://direct.fipradio.fr/live/fip-webradio5.mp3"
     visual = "https://cdn.radiofrance.fr/s3/cruiser-production/2019/06/e061141c-f6b4-4502-ba43-f6ec693a049b/200x200_fip-nouveau_ok.jpg"
     li = xbmcgui.ListItem(label=title, thumbnailImage=visual)
     li.setProperty('fanart_image', visual)
