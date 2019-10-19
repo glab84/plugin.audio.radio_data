@@ -11,46 +11,18 @@ import urlparse
 import urllib
 import web_pdb
 
-class It(xbmcgui.ListItem):
-    def __init__(self):
-        xbmcgui.ListItem.__init__(self)
-
-    def update_info_radiofrance(self, url_json):
-        artist,song,fanart,year,duration,album=get_info_radiofrance(url_json)
-        self.setArt({"thumb":fanart, "fanart":fanart})
-        self.setInfo("music", {"title": song, "artist": artist, "year": year, "duration": duration, "album": album})
-
-    def update_info_rfm(self, url_json):
-        artist,song,fanart,year,duration,album=get_info_rfm(url_json)
-        self.setArt({"thumb":fanart, "fanart":fanart})
-        self.setInfo("music", {"title": song, "artist": artist, "year": year, "duration": duration, "album": album})
-
-class Radio(xbmc.Player):
-    def __init__(self):
-        xbmc.Player.__init__(self)
-
-    def PlayRadio(self, stream):
-       xbmc.log("PlayerRadio stream is %s" % stream)
-       it=It()
-       it.setPath(stream)
-       # in a script only ???
-       self.play(item=stream, listitem=it)
-       xbmcplugin.setResolvedUrl(int(sys.argv[1]), True , listitem=it)
-       xbmc.Monitor().waitForAbort(1)
-
-    def InfoDaemon(self):
-       periode = 10
-       while 1:
-           if self.isPlayingAudio():
-               playing_file = xbmc.Player().getPlayingFile()
-               xbmc.log("InfoDeamon playingfile is %s" % playing_file)
-               set_info(playing_file)
-               xbmc.Monitor().waitForAbort(periode)
+def InfoDaemon():
+   xbmc.log("InfoDeamon is starting...")
+   periode = 10
+   while 1:
+       if xbmc.Player().isPlayingAudio():
+           playing_file = xbmc.Player().getPlayingFile()
+           xbmc.log("InfoDeamon playingfile is %s" % playing_file)
+           set_info(playing_file)
+           xbmc.Monitor().waitForAbort(periode)
 
 def set_info(playing_file):
-    xbmc.log("get_info url is %s" % playing_file)
     json = ""
-    #if playing_file == "http://direct.fipradio.fr/live/fip-midfi.mp3": # FIP National
     if playing_file == "http://icecast.radiofrance.fr/fip-midfi.mp3": # FIP National
         xbmc.log("InfoDeamon FIP National")
         json = "https://api.radiofrance.fr/livemeta/pull/7"
@@ -85,7 +57,8 @@ def set_info(playing_file):
           li.setInfo("music", {"title": song, "artist": artist, "year": year, "duration": duration, "album": album})
           xbmc.Player().updateInfoTag(li)
           artist_debug = xbmc.Player().getMusicInfoTag().getArtist()
-          xbmc.log("InfoDeamon Test Artist debug %s" % artist_debug)
+          if artist_debug == "":
+              xbmc.log("Issue artist : %s" % artist)
         except:
           xbmc.log("Can't update json")
 
@@ -183,7 +156,6 @@ def build_song_list():
     song_list = []
 
     title = "Fip Nationale"
-    #flux = "http://direct.fipradio.fr/live/fip-midfi.mp3"
     flux = "http://icecast.radiofrance.fr/fip-midfi.mp3"
     visual = "http://mediateur.radiofrance.fr/wp-content/themes/radiofrance/img/fip.png"
     li = xbmcgui.ListItem(label=title, thumbnailImage=visual)
@@ -251,25 +223,24 @@ def build_song_list():
     xbmcplugin.endOfDirectory(addon_handle)
     
 def play_song(url):
-    xbmc.log("url is %s" % url)
     xbmc.executebuiltin("ActivateWindow(12006)")
+    xbmc.Monitor().waitForAbort(1)
     WINDOW = xbmcgui.Window(12006)
+    xbmc.Monitor().waitForAbort(1)
 
-    radio=Radio()
-    xbmc.log("PlayerRadio stream is %s" % url)
     li = xbmcgui.ListItem()
     li.setPath(url)
+    xbmc.log("Play_url is %s" % url)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True , listitem=li)
     xbmc.Player().play(item=url, listitem=li)
     xbmc.Monitor().waitForAbort(1)
     set_info(url)
 
     if WINDOW.getProperty("Radio-France-Running") == "true":
-        xbmc.log("Script already running - Not starting a new instance")
         exit(0)
     else:
         WINDOW.setProperty("Radio-France-Running", "true")
-        radio.InfoDaemon()
+        InfoDaemon()
 
 def main():
 
@@ -282,7 +253,7 @@ def main():
     if mode is None:
         # display the list of songs in Kodi
         build_song_list()
-    # a song from the list has been selected
+        # a song from the list has been selected
     elif mode[0] == 'stream':
         # pass the url of the song to play_song
         play_song(args['url'][0])

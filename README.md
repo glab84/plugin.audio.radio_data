@@ -2,8 +2,9 @@
 Only for Kodi v18.
 
 Kodi music addon, webradio with web information provide by Json, xml files...
+
 The goal : get information from json file provide by the webradio.
-For example : Artist, Title, Ablum, Fanart, Duration...
+For example : Artist, Title, Album, Fanart, Duration...
 
 Know issue :
 sometime information not show... Not get focus ?
