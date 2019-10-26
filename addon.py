@@ -12,40 +12,33 @@ import urllib
 import web_pdb
 
 def InfoDaemon():
-   xbmc.log("InfoDeamon is starting...")
+   xbmc.log("Radio_data: InfoDeamon is starting...")
    periode = 10
    while 1:
        if xbmc.Player().isPlayingAudio():
            playing_file = xbmc.Player().getPlayingFile()
-           xbmc.log("InfoDeamon playingfile is %s" % playing_file)
+           xbmc.log("Radio_data: InfoDeamon playingfile is %s" % playing_file)
            set_info(playing_file)
            xbmc.Monitor().waitForAbort(periode)
 
 def set_info(playing_file):
     json = ""
     if playing_file == "http://icecast.radiofrance.fr/fip-midfi.mp3": # FIP National
-        xbmc.log("InfoDeamon FIP National")
         json = "https://api.radiofrance.fr/livemeta/pull/7"
     elif playing_file == "http://direct.fipradio.fr/live/fip-webradio5.mp3": # FIP Tout nouveau
-        xbmc.log("InfoDeamon FIP nouveau")
         json = "https://api.radiofrance.fr/livemeta/pull/70"
     elif playing_file == "http://direct.fipradio.fr/live/fip-webradio1.mp3": # FIP autour du rock
-        xbmc.log("InfoDeamon FIP rock")
         json = "https://api.radiofrance.fr/livemeta/pull/64"
     elif playing_file == "http://direct.fipradio.fr/live/fip-webradio4.mp3": # FIP Monde
-        xbmc.log("InfoDeamon FIP Monde")
         json = "https://api.radiofrance.fr/livemeta/pull/69"
     elif playing_file == "http://direct.fipradio.fr/live/fip-webradio2.mp3": # FIP Jazz
-        xbmc.log("InfoDeamon FIP Jazz")
         json = "https://api.radiofrance.fr/livemeta/pull/65"
     elif playing_file == "http://direct.fipradio.fr/live/fip-webradio6.mp3": # FIP Reggae
-        xbmc.log("InfoDeamon FIP Reggae")
         json = "https://api.radiofrance.fr/livemeta/pull/71"
     elif playing_file == "http://rfm-live-mp3-128.scdn.arkena.com/rfm.mp3": # RFM
-        xbmc.log("InfoDeamon RFM")
         json = "http://directradio.rfm.fr/rfm/now/3"
     if json != "":
-        xbmc.log("Json %s" % json)
+        xbmc.log("Radio_data: Json %s" % json)
         try:
           if json == "http://directradio.rfm.fr/rfm/now/3":
               artist,song,fanart,year,duration,album=get_info_rfm(json)
@@ -56,14 +49,18 @@ def set_info(playing_file):
           li.setArt({"thumb":fanart, "fanart":fanart})
           li.setInfo("music", {"title": song, "artist": artist, "year": year, "duration": duration, "album": album})
           xbmc.Player().updateInfoTag(li)
-          artist_debug = xbmc.Player().getMusicInfoTag().getArtist()
-          if artist_debug == "":
-              xbmc.log("Issue artist : %s" % artist)
+          # Debug
+          try:
+            artist_debug = xbmc.Player().getMusicInfoTag().getArtist()
+            if artist_debug == "":
+                xbmc.log("Radio_data: Issue artist : %s" % artist)
+          except:
+                xbmc.log("Radio_data: Debug can't getArtist !")
         except:
-          xbmc.log("Can't update json")
+          xbmc.log("Radio_data: Can't update json")
 
 def get_info_radiofrance(url):
-    xbmc.log("get_info url is %s" % url)
+    xbmc.log("Radio_data: get_info url is %s" % url)
     try:
       r=requests.get(url)
       info=r.json()
@@ -106,7 +103,7 @@ def get_info_radiofrance(url):
           except:
             album = ""
       duration = end - start
-      xbmc.log("Artists is %s" % artist)
+      xbmc.log("Radio_data: Artists is %s" % artist)
     except:
       song = ""
       artist = ""
@@ -119,7 +116,7 @@ def get_info_radiofrance(url):
     return artist,song,fanart,year,duration,album
 
 def get_info_rfm(url):
-    xbmc.log("get_info url is %s" % url)
+    xbmc.log("Radio_data: get_info url is %s" % url)
     # try ...
     r=requests.get(url)
     info=r.json()
@@ -145,7 +142,7 @@ def get_info_rfm(url):
       duration = v1["duration"]
     except:
       duration = ""
-    xbmc.log("Artists is %s" % artist)
+    xbmc.log("Radio_data: Artists is %s" % artist)
     return artist,song,fanart,year,duration,album
 
 def build_url(query):
@@ -230,7 +227,7 @@ def play_song(url):
 
     li = xbmcgui.ListItem()
     li.setPath(url)
-    xbmc.log("Play_url is %s" % url)
+    xbmc.log("Radio_data: Play_url is %s" % url)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True , listitem=li)
     xbmc.Player().play(item=url, listitem=li)
     xbmc.Monitor().waitForAbort(1)
