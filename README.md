@@ -11,6 +11,7 @@ sometime information not show... Not get focus ?
 the InfoDeamon provide good information but "updateInfoTag" not work.
 
 Installation :
+Depencies : You need to install Add-on:Web-PDB.
 from terminal :
 cd .kodi/addons
 git clone https://github.com/glab84/plugin.audio.radio_data
