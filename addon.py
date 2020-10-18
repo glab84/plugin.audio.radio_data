@@ -10,6 +10,7 @@ import time
 import urlparse
 import urllib
 import web_pdb
+import re
 
 def InfoDaemon():
    xbmc.log("Radio_data: InfoDeamon is starting...")
@@ -22,42 +23,69 @@ def InfoDaemon():
            xbmc.Monitor().waitForAbort(periode)
 
 def set_info(playing_file):
+    artist,song,fanart,year,duration,album=get_info_playing_file(playing_file)
+    if song != "" or artist != "" or album != "":
+      try:
+        li = xbmcgui.ListItem()
+        li.setPath(xbmc.Player().getPlayingFile())
+        li.setArt({"thumb":fanart, "fanart":fanart})
+        li.setInfo("music", {"title": song, "artist": artist, "year": year, "duration": duration, "album": album})
+        xbmc.Player().updateInfoTag(li)
+        artist_debug = xbmc.Player().getMusicInfoTag().getArtist()
+        if artist_debug == "":
+            xbmc.log("Radio_data: Issue artist : %s" % artist)
+      except:
+        xbmc.log("Radio_data: Can't update InfoTag !")
+
+def get_info_playing_file(playing_file):
     json = ""
-    if playing_file == "http://icecast.radiofrance.fr/fip-midfi.mp3": # FIP National
+    if playing_file == "https://icecast.radiofrance.fr/fip-hifi.aac?id=radiofrance": # FIP National
         json = "https://api.radiofrance.fr/livemeta/pull/7"
-    elif playing_file == "http://direct.fipradio.fr/live/fip-webradio5.mp3": # FIP Tout nouveau
+    elif playing_file == "https://icecast.radiofrance.fr/fipnouveautes-hifi.aac?id=radiofrance": # FIP Tout nouveau
         json = "https://api.radiofrance.fr/livemeta/pull/70"
-    elif playing_file == "http://direct.fipradio.fr/live/fip-webradio1.mp3": # FIP autour du rock
+    elif playing_file == "https://icecast.radiofrance.fr/fiprock-hifi.aac?id=radiofrance": # FIP Rock
         json = "https://api.radiofrance.fr/livemeta/pull/64"
-    elif playing_file == "http://direct.fipradio.fr/live/fip-webradio4.mp3": # FIP Monde
+    elif playing_file == "https://icecast.radiofrance.fr/fipworld-hifi.aac?id=radiofrance": # FIP Monde
         json = "https://api.radiofrance.fr/livemeta/pull/69"
-    elif playing_file == "http://direct.fipradio.fr/live/fip-webradio2.mp3": # FIP Jazz
+    elif playing_file == "https://icecast.radiofrance.fr/fipjazz-hifi.aac?id=radiofrance": # FIP Jazz
         json = "https://api.radiofrance.fr/livemeta/pull/65"
-    elif playing_file == "http://direct.fipradio.fr/live/fip-webradio6.mp3": # FIP Reggae
+    elif playing_file == "https://icecast.radiofrance.fr/fipreggae-hifi.aac?id=radiofrance": # FIP Reggae
         json = "https://api.radiofrance.fr/livemeta/pull/71"
-    elif playing_file == "http://rfm-live-mp3-128.scdn.arkena.com/rfm.mp3": # RFM
+    elif playing_file == "https://icecast.radiofrance.fr/fipgroove-hifi.aac?id=radiofrance": # FIP Groove
+        json = "https://api.radiofrance.fr/livemeta/pull/66"
+    elif playing_file == "https://icecast.radiofrance.fr/fipelectro-hifi.aac?id=radiofrance": # FIP Electro
+        json = "https://api.radiofrance.fr/livemeta/pull/74"
+    elif playing_file == "https://icecast.radiofrance.fr/fippop-hifi.aac?id=radiofrance": # FIP Pop
+        json = "https://www.fip.fr/latest/api/graphql?operationName=NowList&variables=%7B%22bannerPreset%22%3A%22266x266%22%2C%22stationIds%22%3A%5B78%5D%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%22151ca055b816d28507dae07f9c036c02031ed54e18defc3d16feee2551e9a731%22%7D%7D"
+    elif playing_file == "https://ais-live.cloud-services.paris:8443/rfm.mp3": # RFM
         json = "http://directradio.rfm.fr/rfm/now/3"
+
     if json != "":
         xbmc.log("Radio_data: Json %s" % json)
         try:
           if json == "http://directradio.rfm.fr/rfm/now/3":
               artist,song,fanart,year,duration,album=get_info_rfm(json)
           else:
-              artist,song,fanart,year,duration,album=get_info_radiofrance(json)
-          li = xbmcgui.ListItem()
-          li.setPath(xbmc.Player().getPlayingFile())
-          li.setArt({"thumb":fanart, "fanart":fanart})
-          li.setInfo("music", {"title": song, "artist": artist, "year": year, "duration": duration, "album": album})
-          xbmc.Player().updateInfoTag(li)
-          # Debug
-          try:
-            artist_debug = xbmc.Player().getMusicInfoTag().getArtist()
-            if artist_debug == "":
-                xbmc.log("Radio_data: Issue artist : %s" % artist)
-          except:
-                xbmc.log("Radio_data: Debug can't getArtist !")
+              graphgl=re.compile('.*graphql.*')
+              if graphgl.match(json):
+                  artist,song,fanart,year,duration,album=get_info_radiofrance_graphql(json)
+              else:
+                  artist,song,fanart,year,duration,album=get_info_radiofrance(json)
         except:
-          xbmc.log("Radio_data: Can't update json")
+          artist=""
+          song=""
+          fanart=""
+          year=""
+          duration=""
+          album=""
+    else:
+        artist=""
+        song=""
+        fanart=""
+        year=""
+        duration=""
+        album=""
+    return artist,song,fanart,year,duration,album
 
 def get_info_radiofrance(url):
     xbmc.log("Radio_data: get_info url is %s" % url)
@@ -95,7 +123,7 @@ def get_info_radiofrance(url):
       except:
         end = 0
       i = song.find('en session live')
-      if i <> -1 and artist == "" :
+      if i != -1 and artist == "" :
           artist = song.replace('en session live', '') # work ?
           song = 'Session live'           
           try:
@@ -115,8 +143,60 @@ def get_info_radiofrance(url):
       duration = end - start
     return artist,song,fanart,year,duration,album
 
+def get_info_radiofrance_graphql(url):
+    xbmc.log("Radio_data: get_info graphql url is %s" % url)
+    try:
+      r=requests.get(url)
+      info=r.json()
+      v1 = info["data"]["nowList"][0]
+      try:
+        song = v1["song"]["title"].title().encode('utf-8')
+      except:
+        song = ""
+      try:
+        artist = v1["song"]["interpreters"][0]
+      except:
+        artist = ""
+      try:
+        album = v1["song"]["album"]
+      except:
+        album = ""
+      try:
+        year = v1["song"]["year"]
+      except:
+        year = ""
+      try:
+        fanart = v1["song"]["cover"]
+      except:
+        fanart = "http://mediateur.radiofrance.fr/wp-content/themes/radiofrance/img/fip.png"
+      try:
+        start = v1["playing_item"]["start_time"]
+      except:
+        start = 0
+      try:
+        end = v1["playing_item"]["end_time"]
+      except:
+        end = 0
+      i = song.find('en session live')
+      if i != -1 and artist == "" :
+          artist = song.replace('en session live', '') # work ?
+          song = 'Session live'           
+          album = ""
+      duration = end - start
+      xbmc.log("Radio_data: Artists is %s" % artist)
+    except:
+      song = ""
+      artist = ""
+      album = ""
+      year = ""
+      fanart = ""
+      start = 0
+      end = 0
+      duration = end - start
+    return artist,song,fanart,year,duration,album
+
 def get_info_rfm(url):
-    xbmc.log("Radio_data: get_info url is %s" % url)
+    xbmc.log("Radio_data: get_info rfm url is %s" % url)
     # try ...
     r=requests.get(url)
     info=r.json()
@@ -153,65 +233,111 @@ def build_song_list():
     song_list = []
 
     title = "Fip Nationale"
-    flux = "http://icecast.radiofrance.fr/fip-midfi.mp3"
-    visual = "http://mediateur.radiofrance.fr/wp-content/themes/radiofrance/img/fip.png"
+    flux = "https://icecast.radiofrance.fr/fip-hifi.aac?id=radiofrance"
+    artist,song,fanart,year,duration,album=get_info_playing_file(flux)
+    visual = fanart
     li = xbmcgui.ListItem(label=title, thumbnailImage=visual)
     li.setProperty('fanart_image', visual)
     li.setProperty('IsPlayable', 'true')
+    li.setInfo('music', {'title': title, 'genre': title})
     url = build_url({'mode': 'stream', 'url': flux, 'title': title})
     song_list.append((url, li, False))
 
-    title = "Fip Tout nouveau"
-    flux = "http://direct.fipradio.fr/live/fip-webradio5.mp3"
-    visual = "https://cdn.radiofrance.fr/s3/cruiser-production/2019/06/e061141c-f6b4-4502-ba43-f6ec693a049b/200x200_fip-nouveau_ok.jpg"
+    title = "Fip Nouveautés"
+    flux = "https://icecast.radiofrance.fr/fipnouveautes-hifi.aac?id=radiofrance"
+    artist,song,fanart,year,duration,album=get_info_playing_file(flux)
+    visual = fanart
     li = xbmcgui.ListItem(label=title, thumbnailImage=visual)
     li.setProperty('fanart_image', visual)
     li.setProperty('IsPlayable', 'true')
+    li.setInfo('music', {'title': title, 'genre': title})
     url = build_url({'mode': 'stream', 'url': flux, 'title': title})
     song_list.append((url, li, False))
 
     title = "Fip Rock"
-    flux = "http://direct.fipradio.fr/live/fip-webradio1.mp3"
-    visual = "https://cdn.radiofrance.fr/s3/cruiser-production/2019/06/f5b944ca-9a21-4970-8eed-e711dac8ac15/200x200_fip-rock_ok.jpg"
+    flux = "https://icecast.radiofrance.fr/fiprock-hifi.aac?id=radiofrance"
+    artist,song,fanart,year,duration,album=get_info_playing_file(flux)
+    visual = fanart
     li = xbmcgui.ListItem(label=title, thumbnailImage=visual)
     li.setProperty('fanart_image', visual)
     li.setProperty('IsPlayable', 'true')
+    li.setInfo('music', {'title': title, 'genre': title})
     url = build_url({'mode': 'stream', 'url': flux, 'title': title})
     song_list.append((url, li, False))
 
     title = "Fip Monde"
-    flux = "http://direct.fipradio.fr/live/fip-webradio4.mp3"
-    visual = "https://cdn.radiofrance.fr/s3/cruiser-production/2019/06/9a1d42c5-8a36-4253-bfae-bdbfb85cbe14/200x200_fip-monde_ok.jpg"
+    flux = "https://icecast.radiofrance.fr/fipworld-hifi.aac?id=radiofrance"
+    artist,song,fanart,year,duration,album=get_info_playing_file(flux)
+    visual = fanart
     li = xbmcgui.ListItem(label=title, thumbnailImage=visual)
     li.setProperty('fanart_image', visual)
     li.setProperty('IsPlayable', 'true')
     url = build_url({'mode': 'stream', 'url': flux, 'title': title})
+    li.setInfo('music', {'title': title, 'genre': title})
     song_list.append((url, li, False))
 
     title = "Fip Jazz"
-    flux = "http://direct.fipradio.fr/live/fip-webradio2.mp3"
-    visual = "https://cdn.radiofrance.fr/s3/cruiser-production/2019/06/840a4431-0db0-4a94-aa28-53f8de011ab6/200x200_fip-jazz-01.jpg"
+    flux = "https://icecast.radiofrance.fr/fipjazz-hifi.aac?id=radiofrance"
+    artist,song,fanart,year,duration,album=get_info_playing_file(flux)
+    visual = fanart
     li = xbmcgui.ListItem(label=title, thumbnailImage=visual)
     li.setProperty('fanart_image', visual)
     li.setProperty('IsPlayable', 'true')
     url = build_url({'mode': 'stream', 'url': flux, 'title': title})
+    li.setInfo('music', {'title': title, 'genre': title})
     song_list.append((url, li, False))
 
     title = "Fip Reggae"
-    flux = "http://direct.fipradio.fr/live/fip-webradio6.mp3"
-    visual = "https://cdn.radiofrance.fr/s3/cruiser-production/2019/06/15a58f25-86a5-4b1a-955e-5035d9397da3/200x200_fip-reggae_ok.jpg"
+    flux = "https://icecast.radiofrance.fr/fipreggae-hifi.aac?id=radiofrance"
+    artist,song,fanart,year,duration,album=get_info_playing_file(flux)
+    visual = fanart
     li = xbmcgui.ListItem(label=title, thumbnailImage=visual)
     li.setProperty('fanart_image', visual)
     li.setProperty('IsPlayable', 'true')
+    li.setInfo('music', {'title': title, 'genre': title})
+    url = build_url({'mode': 'stream', 'url': flux, 'title': title})
+    song_list.append((url, li, False))
+
+    title = "Fip Groove"
+    flux = "https://icecast.radiofrance.fr/fipgroove-hifi.aac?id=radiofrance"
+    artist,song,fanart,year,duration,album=get_info_playing_file(flux)
+    visual = fanart
+    li = xbmcgui.ListItem(label=title, thumbnailImage=visual)
+    li.setProperty('fanart_image', visual)
+    li.setProperty('IsPlayable', 'true')
+    li.setInfo('music', {'title': title, 'genre': title})
+    url = build_url({'mode': 'stream', 'url': flux, 'title': title})
+    song_list.append((url, li, False))
+
+    title = "Fip Electro"
+    flux = "https://icecast.radiofrance.fr/fipelectro-hifi.aac?id=radiofrance"
+    artist,song,fanart,year,duration,album=get_info_playing_file(flux)
+    visual = fanart
+    li = xbmcgui.ListItem(label=title, thumbnailImage=visual)
+    li.setProperty('fanart_image', visual)
+    li.setProperty('IsPlayable', 'true')
+    li.setInfo('music', {'title': title, 'genre': title})
+    url = build_url({'mode': 'stream', 'url': flux, 'title': title})
+    song_list.append((url, li, False))
+
+    title = "Fip Pop"
+    flux = "https://icecast.radiofrance.fr/fippop-hifi.aac?id=radiofrance"
+    artist,song,fanart,year,duration,album=get_info_playing_file(flux)
+    visual = fanart
+    li = xbmcgui.ListItem(label=title, thumbnailImage=visual)
+    li.setProperty('fanart_image', visual)
+    li.setProperty('IsPlayable', 'true')
+    li.setInfo('music', {'title': title, 'genre': title})
     url = build_url({'mode': 'stream', 'url': flux, 'title': title})
     song_list.append((url, li, False))
 
     title = "RFM"
-    flux = "http://rfm-live-mp3-128.scdn.arkena.com/rfm.mp3"
+    flux = "https://ais-live.cloud-services.paris:8443/rfm.mp3"
     visual = "https://cdn-rfm.lanmedia.fr/bundles/rfmintegration/images/logoRFM.png"
     li = xbmcgui.ListItem(label=title, thumbnailImage=visual)
     li.setProperty('fanart_image', visual)
     li.setProperty('IsPlayable', 'true')
+    li.setInfo('music', {'title': title, 'genre': title})
     url = build_url({'mode': 'stream', 'url': flux, 'title': title})
     song_list.append((url, li, False))
 
@@ -227,16 +353,16 @@ def play_song(url):
 
     li = xbmcgui.ListItem()
     li.setPath(url)
-    xbmc.log("Radio_data: Play_url is %s" % url)
+    xbmc.log("Radio-data: Play_url is %s" % url)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True , listitem=li)
     xbmc.Player().play(item=url, listitem=li)
     xbmc.Monitor().waitForAbort(1)
     set_info(url)
 
-    if WINDOW.getProperty("Radio-France-Running") == "true":
+    if WINDOW.getProperty("Radio-data") == "true":
         exit(0)
     else:
-        WINDOW.setProperty("Radio-France-Running", "true")
+        WINDOW.setProperty("Radio-data", "true")
         InfoDaemon()
 
 def main():
