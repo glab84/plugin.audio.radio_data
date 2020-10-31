@@ -13,6 +13,7 @@ import web_pdb
 import re
 import json
 import xbmcaddon
+import xml.etree.ElementTree as ET
 from urllib import urlencode
 from urlparse import parse_qsl
 
@@ -30,11 +31,11 @@ def set_info(playing_file):
     artist,song,fanart,year,duration,album=get_info_playing_file(playing_file)
     if song != "" or artist != "" or album != "":
       try:
-        li = xbmcgui.ListItem()
-        li.setPath(xbmc.Player().getPlayingFile())
-        li.setArt({"thumb":fanart, "fanart":fanart})
-        li.setInfo("music", {"title": song, "artist": artist, "year": year, "duration": duration, "album": album})
-        xbmc.Player().updateInfoTag(li)
+        list_item = xbmcgui.ListItem()
+        list_item.setPath(xbmc.Player().getPlayingFile())
+        list_item.setArt({"thumb":fanart, "fanart":fanart})
+        list_item.setInfo("music", {"title": song, "artist": artist, "year": year, "duration": duration, "album": album})
+        xbmc.Player().updateInfoTag(list_item)
         artist_debug = xbmc.Player().getMusicInfoTag().getArtist()
         if artist_debug == "":
             xbmc.log("Radio_data: Issue artist : %s" % artist)
@@ -49,12 +50,12 @@ def radiodata_menu_radiodata(menujson, url):
     for p1 in menu['menu']:
         for p2 in p1['contents']['menuitem']:
            if p2['stream_url'] == url:
-               return p2['radiodata_type'], p2['radiodata_url']
-    return '',''
+               return p2['radiodata_type'], p2['radiodata_url'], p2['fanart']
+    return '','',''
 
 def get_info_playing_file(playing_file):
     xbmc.log("Radio_data: playing_file %s" % playing_file)
-    radiodata_type, radiodata_file = radiodata_menu_radiodata(pathfilemenu, playing_file)
+    radiodata_type, radiodata_file, radiodata_fanart = radiodata_menu_radiodata(pathfilemenu, playing_file)
     if radiodata_type != "" and radiodata_file != "" : 
         xbmc.log("Radio_data: type %s " % radiodata_type)
         xbmc.log("Radio_data: file %s " % radiodata_file)
@@ -68,6 +69,8 @@ def get_info_playing_file(playing_file):
                 artist,song,fanart,year,duration,album=get_info_radiofrance_basic(radiodata_file)
             elif radiodata_type == "rfm_json" :
                 artist,song,fanart,year,duration,album=get_info_rfm(radiodata_file)
+            elif radiodata_type == "jazzradio_xml" :
+                artist,song,fanart,year,duration,album=get_info_jazzradio_xml(radiodata_file)
             else:
                 xbmc.log("Radio_data: Fail to found type !")
                 artist=""
@@ -91,6 +94,9 @@ def get_info_playing_file(playing_file):
           year=""
           duration=""
           album=""
+    if fanart == "" and radiodata_fanart != "":
+        xbmc.log("Radio_data: fall back %s " % radiodata_fanart)
+        fanart = radiodata_fanart
     return artist,song,fanart,year,duration,album
 
 def get_info_radiofrance(url):
@@ -118,8 +124,9 @@ def get_info_radiofrance(url):
         year = ""
       try:
         fanart = v1["visual"]
+        # If not a picture => Redirection ?
       except:
-        fanart = "http://mediateur.radiofrance.fr/wp-content/themes/radiofrance/img/fip.png"
+        fanart = ""
       try:
         start = v1["start"]
       except:
@@ -174,7 +181,7 @@ def get_info_radiofrance_graphql(url):
       try:
         fanart = v1["song"]["cover"]
       except:
-        fanart = "http://mediateur.radiofrance.fr/wp-content/themes/radiofrance/img/fip.png"
+        fanart = ""
       try:
         start = v1["playing_item"]["start_time"]
       except:
@@ -221,7 +228,7 @@ def get_info_radiofrance_basic(url):
       try:
         fanart = v1["cover"]
       except:
-        fanart = "http://mediateur.radiofrance.fr/wp-content/themes/radiofrance/img/fip.png"
+        fanart = ""
       try:
         start = v1["start_time"]
       except:
@@ -237,6 +244,44 @@ def get_info_radiofrance_basic(url):
           album = ""
       duration = end - start
       xbmc.log("Radio_data: Artists is %s" % artist)
+    except:
+      song = ""
+      artist = ""
+      album = ""
+      year = ""
+      fanart = ""
+      start = 0
+      end = 0
+      duration = end - start
+    return artist,song,fanart,year,duration,album
+
+def get_info_jazzradio_xml(url):
+    xbmc.log("Radio_data: get_info jazzradio url is %s" % url)
+    try:
+      r=requests.get(url)
+      root = ET.fromstring(r.content)
+
+      album = ""
+      year = ""
+      start = 0
+      end = 0
+      try:
+          for child in root:
+              for child2 in child:
+                  if child2.tag == "chanteur":
+                      artist = child2.text
+                  if child2.tag == "chanson":
+                      song = child2.text
+                  if child2.tag == "pochette":
+                      fanart = child2.text
+              break
+      except:
+        song = ""
+        artist = ""
+        fanart = ""
+      duration = end - start
+      xbmc.log("Radio_data: Artists is %s" % artist)
+      xbmc.log("Radio_data: Fan Art is %s" % fanart)
     except:
       song = ""
       artist = ""
@@ -282,6 +327,28 @@ def build_url(query):
     base_url = sys.argv[0]
     return base_url + '?' + urllib.urlencode(query)
 
+def build_menu(menujson):
+    xbmcplugin.setPluginCategory(addon_handle, 'Main Menu')
+    xbmcplugin.setContent(addon_handle, 'stream')
+    
+    with open(menujson) as json_file:
+        menu = json.load(json_file)
+
+    for p in menu['menu']:
+        list_item = xbmcgui.ListItem(label=p['value'])
+        list_item.setArt({'thumb': p['fanart'],
+                          'icon': p['fanart'],
+                          'fanart': p['fanart']})
+        list_item.setInfo('stream', {'title': p['value'],
+                                    'genre': p['value'],
+                                    'mediatype': 'stream'})
+        url = build_url({'action': 'listing', 'menuid': p['id']})
+        is_folder = True
+        xbmcplugin.addDirectoryItem(addon_handle, url, list_item, is_folder)
+
+    xbmcplugin.addSortMethod(addon_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
+    xbmcplugin.endOfDirectory(addon_handle)
+
 def build_menu_contents(menujson, id):
     with open(menujson) as json_file:
         menu = json.load(json_file)
@@ -300,64 +367,28 @@ def build_menu_contents(menujson, id):
                else:
                   artist,song,fanart,year,duration,album=get_info_playing_file(flux)
                   visual = fanart
-               li = xbmcgui.ListItem(label=title, thumbnailImage=visual)
-               li.setProperty('fanart_image', visual)
-               li.setProperty('IsPlayable', 'true')
-               li.setInfo('music', {'title': title, 'genre': title})
+               list_item = xbmcgui.ListItem(label=title, thumbnailImage=visual)
+               list_item.setArt({'thumb': visual, 'fanart': p1['fanart']})
+               list_item.setProperty('IsPlayable', 'true')
+               list_item.setInfo('music', {'title': title, 'genre': title})
                url = build_url({'mode': 'stream', 'url': flux, 'title': title})
-               song_list.append((url, li, False))
+               song_list.append((url, list_item, False))
 
     xbmcplugin.addDirectoryItems(addon_handle, song_list, len(song_list))
     xbmcplugin.setContent(addon_handle, 'songs')
     xbmcplugin.endOfDirectory(addon_handle)
 
-def get_url(**kwargs):
-    """
-    Create a URL for calling the plugin recursively from the given set of keyword arguments.
-
-    :param kwargs: "argument=value" pairs
-    :type kwargs: dict
-    :return: plugin call URL
-    :rtype: str
-    """
-    return '{0}?{1}'.format(_url, urlencode(kwargs))
-
-def build_menu(menujson):
-    xbmcplugin.setPluginCategory(addon_handle, 'Main Menu')
-    xbmcplugin.setContent(addon_handle, 'stream')
-    
-    with open(menujson) as json_file:
-        menu = json.load(json_file)
-
-    for p in menu['menu']:
-        list_item = xbmcgui.ListItem(label=p['value'])
-        list_item.setArt({'thumb': p['fanart'],
-                          'icon': p['fanart'],
-                          'fanart': p['fanart']})
-        list_item.setInfo('stream', {'title': p['value'],
-                                    'genre': p['value'],
-                                    'mediatype': 'stream'})
-        url = get_url(action='listing', menuid=p['id'])
-        is_folder = True
-        xbmcplugin.addDirectoryItem(addon_handle, url, list_item, is_folder)
-
-    xbmcplugin.addSortMethod(addon_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
-    xbmcplugin.endOfDirectory(addon_handle)
-
-def build_song_list(menuitem):
-    build_menu_contents(pathfilemenu, menuitem)
-    
 def play_song(url):
     xbmc.executebuiltin("ActivateWindow(12006)")
     xbmc.Monitor().waitForAbort(1)
     WINDOW = xbmcgui.Window(12006)
     xbmc.Monitor().waitForAbort(1)
 
-    li = xbmcgui.ListItem()
-    li.setPath(url)
+    list_item = xbmcgui.ListItem()
+    list_item.setPath(url)
     xbmc.log("Radio-data: Play_url is %s" % url)
-    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True , listitem=li)
-    xbmc.Player().play(item=url, listitem=li)
+    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True , listitem=list_item)
+    xbmc.Player().play(item=url, listitem=list_item)
     xbmc.Monitor().waitForAbort(1)
     set_info(url)
 
@@ -390,7 +421,7 @@ if __name__ == '__main__':
     _addon_ = xbmcaddon.Addon()
     path = _addon_.getAddonInfo('path').decode('utf-8')
     xbmc.log("Radio-data: path is %s" % path)
-    filemenu = 'menu.json'
+    filemenu = 'radio-data.json'
     pathfilemenu = os.path.join(path, filemenu)
 
     _url = sys.argv[0]
