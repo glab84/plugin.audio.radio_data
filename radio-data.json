@@ -189,7 +189,7 @@
         	    "menuitem": [
         	        { "value": "MOUV'",
         	          "fanart": "",
-        	          "stream_url": "https://icecast.radiofrance.fr/mouv-hifi.#aac?id=radiofrance",
+        	          "stream_url": "https://icecast.radiofrance.fr/mouv-hifi.aac?id=radiofrance",
         	          "radiodata_url": "https://api.radiofrance.fr/livemeta/pull/6",
         	          "radiodata_type": "rf_json"},
         	        { "value": "MOUV' Xtra",

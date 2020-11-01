@@ -14,6 +14,7 @@ import re
 import json
 import xbmcaddon
 import xml.etree.ElementTree as ET
+from datetime import datetime
 from urllib import urlencode
 from urlparse import parse_qsl
 
@@ -24,11 +25,34 @@ def InfoDaemon():
        if xbmc.Player().isPlayingAudio():
            playing_file = xbmc.Player().getPlayingFile()
            xbmc.log("Radio_data: InfoDeamon playingfile is %s" % playing_file)
-           set_info(playing_file)
-           xbmc.Monitor().waitForAbort(periode)
+           xbmc.Monitor().waitForAbort(1)
+           dt_end = set_info(playing_file)
+           dt_now = datetime.now()
+           
+           if dt_end == datetime.min:
+              xbmc.Monitor().waitForAbort(periode)
+           else:
+              delta = dt_end - dt_now 
+              xbmc.log("Radio_data: InfoDeamon dt_end is %s" % dt_end.strftime("%d/%m/%Y %H:%M:%S %Z"))
+              xbmc.log("Radio_data: InfoDeamon now is %s" % dt_now.strftime("%d/%m/%Y %H:%M:%S %Z"))
+              xbmc.log("Radio_data: InfoDeamon delta is %s" % delta.seconds)
+              if delta.seconds > 0 and dt_end > dt_now :
+                  # The song end in delta.seconds
+                  # But perhaps the user change the stream.
+                  previus_playing_file = playing_file
+                  for i in range(delta.seconds):
+                     if not xbmc.Player().isPlayingAudio():
+                         break
+                     playing_file = xbmc.Player().getPlayingFile()
+                     xbmc.log("Radio_data: InfoDeamon (for) playingfile is %s" % playing_file)
+                     if playing_file != previus_playing_file:
+                         break
+                     xbmc.Monitor().waitForAbort(1)
+              else:
+                  xbmc.Monitor().waitForAbort(1)
 
 def set_info(playing_file):
-    artist,song,fanart,year,duration,album=get_info_playing_file(playing_file)
+    artist,song,fanart,year,duration,album,end=get_info_playing_file(playing_file)
     if song != "" or artist != "" or album != "":
       try:
         list_item = xbmcgui.ListItem()
@@ -41,6 +65,7 @@ def set_info(playing_file):
             xbmc.log("Radio_data: Issue artist : %s" % artist)
       except:
         xbmc.log("Radio_data: Can't update InfoTag !")
+    return end
 
 # menu.json management
 def radiodata_menu_radiodata(menujson, url):
@@ -56,21 +81,22 @@ def radiodata_menu_radiodata(menujson, url):
 def get_info_playing_file(playing_file):
     xbmc.log("Radio_data: playing_file %s" % playing_file)
     radiodata_type, radiodata_file, radiodata_fanart = radiodata_menu_radiodata(pathfilemenu, playing_file)
+    dt_end = datetime.min
     if radiodata_type != "" and radiodata_file != "" : 
         xbmc.log("Radio_data: type %s " % radiodata_type)
         xbmc.log("Radio_data: file %s " % radiodata_file)
         
         try:
             if radiodata_type == "rf_json" :
-                artist,song,fanart,year,duration,album=get_info_radiofrance(radiodata_file)
+                artist,song,fanart,year,duration,album,dt_end=get_info_radiofrance(radiodata_file)
             elif radiodata_type == "rf_json_graphql" :
-                artist,song,fanart,year,duration,album=get_info_radiofrance_graphql(radiodata_file)
+                artist,song,fanart,year,duration,album,dt_ent=get_info_radiofrance_graphql(radiodata_file)
             elif radiodata_type == "rf_json_basic" :
-                artist,song,fanart,year,duration,album=get_info_radiofrance_basic(radiodata_file)
+                artist,song,fanart,year,duration,album,dt_ent=get_info_radiofrance_basic(radiodata_file)
             elif radiodata_type == "rfm_json" :
-                artist,song,fanart,year,duration,album=get_info_rfm(radiodata_file)
+                artist,song,fanart,year,duration,album,dt_ent=get_info_rfm(radiodata_file)
             elif radiodata_type == "jazzradio_xml" :
-                artist,song,fanart,year,duration,album=get_info_jazzradio_xml(radiodata_file)
+                artist,song,fanart,year,duration,album,dt_ent=get_info_jazzradio_xml(radiodata_file)
             else:
                 xbmc.log("Radio_data: Fail to found type !")
                 artist=""
@@ -79,7 +105,7 @@ def get_info_playing_file(playing_file):
                 year=""
                 duration=""
                 album=""
-
+                dt_end = datetime.min
         except:
               artist=""
               song=""
@@ -87,6 +113,7 @@ def get_info_playing_file(playing_file):
               year=""
               duration=""
               album=""
+              dt_end = datetime.min
     else:
           artist=""
           song=""
@@ -94,10 +121,11 @@ def get_info_playing_file(playing_file):
           year=""
           duration=""
           album=""
+          dt_end = datetime.min
     if fanart == "" and radiodata_fanart != "":
         xbmc.log("Radio_data: fall back %s " % radiodata_fanart)
         fanart = radiodata_fanart
-    return artist,song,fanart,year,duration,album
+    return artist,song,fanart,year,duration,album,dt_end
 
 def get_info_radiofrance(url):
     xbmc.log("Radio_data: get_info url is %s" % url)
@@ -133,6 +161,7 @@ def get_info_radiofrance(url):
         start = 0
       try:
         end = v1["end"]
+        dt_end = datetime.fromtimestamp(end)
       except:
         end = 0
       i = song.find('en session live')
@@ -154,7 +183,8 @@ def get_info_radiofrance(url):
       start = 0
       end = 0
       duration = end - start
-    return artist,song,fanart,year,duration,album
+      dt_end = datetime.min
+    return artist,song,fanart,year,duration,album,dt_end
 
 def get_info_radiofrance_graphql(url):
     xbmc.log("Radio_data: get_info graphql url is %s" % url)
@@ -188,8 +218,10 @@ def get_info_radiofrance_graphql(url):
         start = 0
       try:
         end = v1["playing_item"]["end_time"]
+        dt_end = datetime.fromtimestamp(end)
       except:
         end = 0
+        dt_end = datetime.min
       i = song.find('en session live')
       if i != -1 and artist == "" :
           artist = song.replace('en session live', '') # work ?
@@ -206,7 +238,8 @@ def get_info_radiofrance_graphql(url):
       start = 0
       end = 0
       duration = end - start
-    return artist,song,fanart,year,duration,album
+      dt_end = datetime.min
+    return artist,song,fanart,year,duration,album,dt_end
 
 def get_info_radiofrance_basic(url):
     xbmc.log("Radio_data: get_info basic url is %s" % url)
@@ -235,8 +268,10 @@ def get_info_radiofrance_basic(url):
         start = 0
       try:
         end = v1["end_time"]
+        dt_end = datetime.fromtimestamp(end)
       except:
         end = 0
+        dt_end = datetime.min
       i = song.find('en session live')
       if i != -1 and artist == "" :
           artist = song.replace('en session live', '') # work ?
@@ -253,7 +288,8 @@ def get_info_radiofrance_basic(url):
       start = 0
       end = 0
       duration = end - start
-    return artist,song,fanart,year,duration,album
+      dt_end = datetime.min
+    return artist,song,fanart,year,duration,album,dt_end
 
 def get_info_jazzradio_xml(url):
     xbmc.log("Radio_data: get_info jazzradio url is %s" % url)
@@ -291,7 +327,8 @@ def get_info_jazzradio_xml(url):
       start = 0
       end = 0
       duration = end - start
-    return artist,song,fanart,year,duration,album
+    dt_end = datetime.min
+    return artist,song,fanart,year,duration,album,dt_end
 
 def get_info_rfm(url):
     xbmc.log("Radio_data: get_info rfm url is %s" % url)
@@ -320,8 +357,9 @@ def get_info_rfm(url):
       duration = v1["duration"]
     except:
       duration = ""
+    dt_end = datetime.min
     xbmc.log("Radio_data: Artists is %s" % artist)
-    return artist,song,fanart,year,duration,album
+    return artist,song,fanart,year,duration,album,dt_end
 
 def build_url(query):
     base_url = sys.argv[0]
@@ -365,7 +403,7 @@ def build_menu_contents(menujson, id):
                if p2['fanart'] != '' :
                   visual = p2['fanart']
                else:
-                  artist,song,fanart,year,duration,album=get_info_playing_file(flux)
+                  artist,song,fanart,year,duration,album,dt_end = get_info_playing_file(flux)
                   visual = fanart
                list_item = xbmcgui.ListItem(label=title, thumbnailImage=visual)
                list_item.setArt({'thumb': visual, 'fanart': p1['fanart']})
@@ -379,6 +417,7 @@ def build_menu_contents(menujson, id):
     xbmcplugin.endOfDirectory(addon_handle)
 
 def play_song(url):
+
     xbmc.executebuiltin("ActivateWindow(12006)")
     xbmc.Monitor().waitForAbort(1)
     WINDOW = xbmcgui.Window(12006)
@@ -399,8 +438,6 @@ def play_song(url):
         InfoDaemon()
 
 def main():
-
-    xbmc.executebuiltin("ActivateWindow(12006)")
 
     args = urlparse.parse_qs(sys.argv[2][1:])
     mode = args.get('mode', None)
