@@ -522,7 +522,7 @@ def main():
 
 if __name__ == '__main__':
     _addon_ = xbmcaddon.Addon()
-    setfilemenu = xbmcaddon.Addon('plugin.audio.radio-data').getSetting("custom_json")
+    setfilemenu = xbmcaddon.Addon('plugin.audio.radio-data').getSettingBool("custom_json")
     if setfilemenu :
       pathfilemenu = xbmcaddon.Addon('plugin.audio.radio-data').getSetting("custom_file_json")
     else :
@@ -530,7 +530,7 @@ if __name__ == '__main__':
       path = _addon_.getAddonInfo('path').decode('utf-8')
       pathfilemenu = os.path.join(path, filemenu)
     xbmc.log("Radio-data: pathfilemenu is %s" % pathfilemenu)
-    setfallback = xbmcaddon.Addon('plugin.audio.radio-data').getSetting("fallback")
+    setfallback = xbmcaddon.Addon('plugin.audio.radio-data').getSettingBool("fallback")
     xbmc.log("Radio-data: setfallback is %s" % setfallback)
     if setfallback :
       pathfallback = xbmcaddon.Addon('plugin.audio.radio-data').getSetting("fallback_path")
