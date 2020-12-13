@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <settings>
 	<category>
-		<setting id="bitrate" label="30001" type="labelenum" values="Maximum|128 kb/s|64 kb/s|32 kb/s" default="Maximum"/>
+		<setting id="custom_json" type="bool" label="32109" default="false" />
+		<setting id="custom_json_file" type="file" label="32110" default="" visible="eq(-1,true) + eq(-7,false)" />
+		<setting id="fallback" type="bool" label="32111" default="false" />
+		<setting id="fallback_path" type="folder" label="32112" default="" visible="eq(-1,true) + eq(-7,false)" />
 	</category>
 </settings>
