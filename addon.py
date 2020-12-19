@@ -524,7 +524,7 @@ if __name__ == '__main__':
     _addon_ = xbmcaddon.Addon()
     setfilemenu = xbmcaddon.Addon('plugin.audio.radio-data').getSettingBool("custom_json")
     if setfilemenu :
-      pathfilemenu = xbmcaddon.Addon('plugin.audio.radio-data').getSetting("custom_file_json")
+      pathfilemenu = xbmcaddon.Addon('plugin.audio.radio-data').getSetting("custom_json_file")
     else :
       filemenu = 'radio-data.json'
       path = _addon_.getAddonInfo('path').decode('utf-8')
