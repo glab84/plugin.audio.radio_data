@@ -138,19 +138,15 @@ def get_info_radiofrance(url):
       position = 4 
       # check if the fipette speak, switch to position 4 !
       # To do : need to use fr time zone ...
-      c1 = info["levels"][0]["items"][position]
-      v1 = info["steps"][c1]
       try:
+        c1 = info["levels"][0]["items"][position]
+        v1 = info["steps"][c1]
         start = v1["start"]
         dt_start = datetime.fromtimestamp(start)
-      except:
-        start = 0
-        dt_start = datetime.min
-      try:
         end = v1["end"]
         dt_end = datetime.fromtimestamp(end)
       except:
-        start = 0
+        dt_start = datetime.max
         dt_end = datetime.min
       dt_now = datetime.now()
       if dt_now < dt_start or dt_now > dt_end :
@@ -523,12 +519,13 @@ def main():
 if __name__ == '__main__':
     _addon_ = xbmcaddon.Addon()
     setfilemenu = xbmcaddon.Addon('plugin.audio.radio-data').getSettingBool("custom_json")
-    if setfilemenu :
-      pathfilemenu = xbmcaddon.Addon('plugin.audio.radio-data').getSetting("custom_json_file")
-    else :
-      filemenu = 'radio-data.json'
-      path = _addon_.getAddonInfo('path').decode('utf-8')
-      pathfilemenu = os.path.join(path, filemenu)
+    # Not works ???
+    #if setfilemenu :
+    #  pathfilemenu = xbmcaddon.Addon('plugin.audio.radio-data').getSetting("custom_file_json")
+    #else :
+    filemenu = 'radio-data.json'
+    path = _addon_.getAddonInfo('path').decode('utf-8')
+    pathfilemenu = os.path.join(path, filemenu)
     xbmc.log("Radio-data: pathfilemenu is %s" % pathfilemenu)
     setfallback = xbmcaddon.Addon('plugin.audio.radio-data').getSettingBool("fallback")
     xbmc.log("Radio-data: setfallback is %s" % setfallback)
