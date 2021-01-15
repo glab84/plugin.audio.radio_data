@@ -519,13 +519,13 @@ def main():
 if __name__ == '__main__':
     _addon_ = xbmcaddon.Addon()
     setfilemenu = xbmcaddon.Addon('plugin.audio.radio-data').getSettingBool("custom_json")
-    # Not works ???
-    #if setfilemenu :
-    #  pathfilemenu = xbmcaddon.Addon('plugin.audio.radio-data').getSetting("custom_file_json")
-    #else :
-    filemenu = 'radio-data.json'
-    path = _addon_.getAddonInfo('path').decode('utf-8')
-    pathfilemenu = os.path.join(path, filemenu)
+    xbmc.log("Radio-data: setfilemenu is %s" % setfilemenu)
+    if setfilemenu :
+      pathfilemenu = xbmcaddon.Addon('plugin.audio.radio-data').getSetting("custom_json_file")
+    else :
+      filemenu = 'radio-data.json'
+      path = _addon_.getAddonInfo('path').decode('utf-8')
+      pathfilemenu = os.path.join(path, filemenu)
     xbmc.log("Radio-data: pathfilemenu is %s" % pathfilemenu)
     setfallback = xbmcaddon.Addon('plugin.audio.radio-data').getSettingBool("fallback")
     xbmc.log("Radio-data: setfallback is %s" % setfallback)

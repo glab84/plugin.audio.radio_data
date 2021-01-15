@@ -1,7 +1,6 @@
 # Kodi Media Center language file
 # Addon Name: Streaming Radio
 # Addon id: plugin.audio.streaming-radio
-# Addon Provider: Jonathan Holvey
 
 msgid ""
 msgstr ""
