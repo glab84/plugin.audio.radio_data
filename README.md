@@ -1,5 +1,5 @@
 # plugin.audio.radio_data
-Only for Kodi v18.
+Only for Kodi v18 and above.
 
 Kodi music addon, webradio with web information provide by Json, xml files...
 
@@ -23,7 +23,7 @@ Currently Work with french radio fip and rfm.
 Ce plugin obtient les informations du titre encours de diffusion à partir du fichier json fourni par la weradio.
 Fonctionne avec les radios fip (et potentionnellement toutes les radios de france inter) et rfm.
 
-Fonctionne avec la version v18 de Kodi.
+Fonctionne avec la version v18 de Kodi et supérieure.
 cf install ppa https://doc.ubuntu-fr.org/kodi pour la v18.
 Prerequis : l'addon Web-PDB.
 Installation du plugin kodi depuis  le terminal :
