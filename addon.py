@@ -1,23 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import xbmc
-import xbmcgui
-import xbmcplugin
-import xbmcaddon
-import xbmcvfs
-import requests
-import os
-import threading
-import time
-import urlparse
-import urllib
-import web_pdb
-import re
+import os, re, threading, time
 import json
+import requests
+import urllib.parse
+import urllib.request, urllib.parse, urllib.error
 import xml.etree.ElementTree as ET
 from datetime import datetime
-from urllib import urlencode
-from urlparse import parse_qsl
+from urllib.parse import urlencode
+from urllib.parse import parse_qsl
+from kodi_six import xbmc, xbmcgui, xbmcvfs, xbmcplugin, xbmcaddon
 
 def InfoDaemon():
    xbmc.log("Radio_data: InfoDeamon is starting...")
@@ -177,6 +169,7 @@ def get_info_radiofrance(url):
         except:
           artist = ""
       # Jazz a fip, etc ...
+      xbmc.log("Radio_data: Artists is %s debug 0" % artist)
       if artist == "" :
         try:
           c1 = info["levels"][1]["items"][3]
@@ -202,8 +195,9 @@ def get_info_radiofrance(url):
             dt_end = datetime.min
         except:
           artist = ""
+      xbmc.log("Radio_data: Artists is %s debug 1" % artist)
       try:
-        song = v1["title"].title().encode('utf-8')
+        song = v1["title"].title()
       except:
         song = ""
       try:
@@ -219,14 +213,20 @@ def get_info_radiofrance(url):
         # If not a picture => Redirection ?
       except:
         fanart = ""
-      i = song.find('en session live')
-      if i != -1 and artist == "" :
+      xbmc.log("Radio_data: Artists is %s debug 2" % artist)
+      xbmc.log("Radio_data: song is %s debug 1" % song)
+      try:
+        # Not Work ???
+        i = song.find("en session live")
+        #re.search('(\d+)$', tmpname).group(0) ) + 1
+        xbmc.log("Radio_data: i is %s debug 1" % i)
+        if i != -1 and artist == "" :
+          xbmc.log("Radio_data: i is %s debug 2" % i)
           artist = song.replace('en session live', '') # work ?
           song = 'Session live'           
-          try:
-            album = v1["titleConcept"]
-          except:
-            album = ""
+          album = v1["titleConcept"]
+      except:
+        pass
       duration = end - start
       xbmc.log("Radio_data: Artists is %s" % artist)
     except:
@@ -421,7 +421,7 @@ def get_info_rfm(url):
 
 def build_url(query):
     base_url = sys.argv[0]
-    return base_url + '?' + urllib.urlencode(query)
+    return base_url + '?' + urllib.parse.urlencode(query)
 
 def build_menu(menujson):
     xbmcplugin.setPluginCategory(addon_handle, 'Main Menu')
@@ -463,7 +463,10 @@ def build_menu_contents(menujson, id):
                else:
                   artist, song, fanart, year, duration, album, dt_end = get_info_playing_file(flux)
                   visual = fanart
-               list_item = xbmcgui.ListItem(label=title, thumbnailImage=visual)
+               list_item = xbmcgui.ListItem(label=title)
+               #list_item = xbmcgui.ListItem(label=title, thumbnailImage=visual)
+               # setArt
+
                list_item.setArt({'thumb': visual, 'fanart': p1['fanart']})
                list_item.setProperty('IsPlayable', 'true')
                list_item.setInfo('music', {'title': title, 'genre': title})
@@ -501,7 +504,7 @@ def play_song(url):
 
 def main():
 
-    args = urlparse.parse_qs(sys.argv[2][1:])
+    args = urllib.parse.parse_qs(sys.argv[2][1:])
     mode = args.get('mode', None)
     menuid = args.get('menuid', None)
     
