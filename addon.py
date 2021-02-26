@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import os, re, threading, time
+import os
+import re
+import threading
+import time
 import json
 import requests
 import urllib.parse
-import urllib.request, urllib.parse, urllib.error
+import urllib.request
+import urllib.error
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from urllib.parse import urlencode
