@@ -67,11 +67,11 @@ def radiodata_menu_radiodata(menujson, url):
     with open(menujson) as json_file:
         menu = json.load(json_file)
 
-    for p1 in menu['menu']:
-        for p2 in p1['contents']['menuitem']:
-           if p2['stream_url'] == url:
-               return p2['radiodata_type'], p2['radiodata_url'], p2['fanart']
-    return '', '', ''
+    for p1 in menu["menu"]:
+        for p2 in p1["contents"]["menuitem"]:
+           if p2["stream_url"] == url:
+               return p2["radiodata_type"], p2["radiodata_url"], p2["fanart"]
+    return "", "", ""
 
 def get_info_playing_file(playing_file):
     xbmc.log("Radio_data: playing_file %s" % playing_file)
@@ -222,8 +222,8 @@ def get_info_radiofrance(url):
             xbmc.log("Radio_data: i is %s debug 1" % i)
             if i != -1 and artist == "" :
                 xbmc.log("Radio_data: i is %s debug 2" % i)
-                artist = song.replace('en session live', '') # work ?
-                song = 'Session live'           
+                artist = song.replace("en session live", "") # work ?
+                song = "Session live"           
                 album = v1["titleConcept"]
         except:
            pass
@@ -248,7 +248,7 @@ def get_info_graphql(url):
         info = r.json()
         v1 = info["data"]["nowList"][0]
         try:
-            song = v1["song"]["title"].title().encode('utf-8')
+            song = v1["song"]["title"].title().encode("utf-8")
         except:
             song = ""
         try:
@@ -279,10 +279,10 @@ def get_info_graphql(url):
             dt_end = datetime.min
         xbmc.log("Radio_data: grahp_gl end %s" % end)
         xbmc.log("Radio_data: grahp_gl dt_end %s" % dt_end)
-        i = song.find('en session live')
+        i = song.find("en session live")
         if i != -1 and artist == "" :
-            artist = song.replace('en session live', '') # work ?
-            song = 'Session live'           
+            artist = song.replace("en session live", "") # work ?
+            song = "Session live"           
             album = ""
         duration = end - start
         xbmc.log("Radio_data: Artists is %s" % artist)
@@ -305,7 +305,7 @@ def get_info_radiofrance_basic(url):
         info = r.json()
         v1 = info["data"]["now"]["playing_item"]
         try:
-            #song = v1["title"].title().encode('utf-8')
+            #song = v1["title"].title().encode("utf-8")
             song = v1["subtitle"]
         except:
             song = ""
@@ -329,10 +329,10 @@ def get_info_radiofrance_basic(url):
         except:
             end = 0
             dt_end = datetime.min
-        i = song.find('en session live')
+        i = song.find("en session live")
         if i != -1 and artist == "" :
-            artist = song.replace('en session live', '') # work ?
-            song = 'Session live'           
+            artist = song.replace("en session live", "") # work ?
+            song = "Session live"           
             album = ""
         duration = end - start
         xbmc.log("Radio_data: Artists is %s" % artist)
@@ -395,7 +395,7 @@ def get_info_rfm(url):
     c1 = info["current"]
     year = ""
     try:
-        song = c1["title"].title().encode('utf-8')
+        song = c1["title"].title().encode("utf-8")
     except:
         song = ""
     try:
@@ -421,24 +421,24 @@ def get_info_rfm(url):
 
 def build_url(query):
     base_url = sys.argv[0]
-    return base_url + '?' + urllib.parse.urlencode(query)
+    return base_url + "?" + urllib.parse.urlencode(query)
 
 def build_menu(menujson):
-    xbmcplugin.setPluginCategory(addon_handle, 'Main Menu')
-    xbmcplugin.setContent(addon_handle, 'stream')
+    xbmcplugin.setPluginCategory(addon_handle, "Main Menu")
+    xbmcplugin.setContent(addon_handle, "stream")
     
     with open(menujson) as json_file:
         menu = json.load(json_file)
 
-    for p in menu['menu']:
-        list_item = xbmcgui.ListItem(label=p['value'])
-        list_item.setArt({'thumb': p['fanart'],
-                          'icon': p['fanart'],
-                          'fanart': p['fanart']})
-        list_item.setInfo('stream', {'title': p['value'],
-                                    'genre': p['value'],
-                                    'mediatype': 'stream'})
-        url = build_url({'action': 'listing', 'menuid': p['id']})
+    for p in menu["menu"]:
+        list_item = xbmcgui.ListItem(label=p["value"])
+        list_item.setArt({"thumb": p["fanart"],
+                          "icon": p["fanart"],
+                          "fanart": p["fanart"]})
+        list_item.setInfo("stream", {"title": p["value"],
+                                    "genre": p["value"],
+                                    "mediatype": "stream"})
+        url = build_url({"action": "listing", "menuid": p["id"]})
         is_folder = True
         xbmcplugin.addDirectoryItem(addon_handle, url, list_item, is_folder)
 
@@ -452,14 +452,14 @@ def build_menu_contents(menujson, id):
     song_list = []
 
     n = 0
-    for p1 in menu['menu']:
-        if p1['id'] == id:
-            for p2 in p1['contents']['menuitem']:
+    for p1 in menu["menu"]:
+        if p1["id"] == id:
+            for p2 in p1["contents"]["menuitem"]:
                n += 1
-               title = p2['value']
-               flux = p2['stream_url']
-               if p2['fanart'] != '' :
-                  visual = p2['fanart']
+               title = p2["value"]
+               flux = p2["stream_url"]
+               if p2["fanart"] != "" :
+                  visual = p2["fanart"]
                else:
                   artist, song, fanart, year, duration, album, dt_end = get_info_playing_file(flux)
                   visual = fanart
@@ -467,14 +467,14 @@ def build_menu_contents(menujson, id):
                #list_item = xbmcgui.ListItem(label=title, thumbnailImage=visual)
                # setArt
 
-               list_item.setArt({'thumb': visual, 'fanart': p1['fanart']})
-               list_item.setProperty('IsPlayable', 'true')
-               list_item.setInfo('music', {'title': title, 'genre': title})
-               url = build_url({'mode': 'stream', 'url': flux, 'title': title})
+               list_item.setArt({"thumb": visual, "fanart": p1["fanart"]})
+               list_item.setProperty("IsPlayable", "true")
+               list_item.setInfo("music", {"title": title, "genre": title})
+               url = build_url({"mode": "stream", "url": flux, "title": title})
                song_list.append((url, list_item, False))
 
     xbmcplugin.addDirectoryItems(addon_handle, song_list, len(song_list))
-    xbmcplugin.setContent(addon_handle, 'songs')
+    xbmcplugin.setContent(addon_handle, "songs")
     xbmcplugin.endOfDirectory(addon_handle)
 
 def play_song(url):
@@ -505,8 +505,8 @@ def play_song(url):
 def main():
 
     args = urllib.parse.parse_qs(sys.argv[2][1:])
-    mode = args.get('mode', None)
-    menuid = args.get('menuid', None)
+    mode = args.get("mode", None)
+    menuid = args.get("menuid", None)
     
     # initial launch of add-on
     if mode is None:
@@ -515,27 +515,27 @@ def main():
         else:
             build_menu_contents(pathfilemenu, menuid[0])
 
-    elif mode[0] == 'stream':
+    elif mode[0] == "stream":
         # pass the url of the song to play_song
-        play_song(args['url'][0])
+        play_song(args["url"][0])
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     _addon_ = xbmcaddon.Addon()
-    setfilemenu = xbmcaddon.Addon('plugin.audio.radio-data').getSettingBool("custom_json")
+    setfilemenu = xbmcaddon.Addon("plugin.audio.radio-data").getSettingBool("custom_json")
     xbmc.log("Radio-data: setfilemenu is %s" % setfilemenu)
     if setfilemenu :
-        pathfilemenu = xbmcaddon.Addon('plugin.audio.radio-data').getSetting("custom_json_file")
+        pathfilemenu = xbmcaddon.Addon("plugin.audio.radio-data").getSetting("custom_json_file")
     else :
-        filemenu = 'radio-data.json'
-        path = _addon_.getAddonInfo('path').decode('utf-8')
+        filemenu = "radio-data.json"
+        path = _addon_.getAddonInfo("path").decode("utf-8")
         pathfilemenu = os.path.join(path, filemenu)
     xbmc.log("Radio-data: pathfilemenu is %s" % pathfilemenu)
-    setfallback = xbmcaddon.Addon('plugin.audio.radio-data').getSettingBool("fallback")
+    setfallback = xbmcaddon.Addon("plugin.audio.radio-data").getSettingBool("fallback")
     xbmc.log("Radio-data: setfallback is %s" % setfallback)
     if setfallback :
-        pathfallback = xbmcaddon.Addon('plugin.audio.radio-data').getSetting("fallback_path")
+        pathfallback = xbmcaddon.Addon("plugin.audio.radio-data").getSetting("fallback_path")
         # Temporary file for Artist slide show.
-        fallback = 'fallback.jpg' 
+        fallback = "fallback.jpg" 
         pathfilefallback = os.path.join(pathfallback, fallback)
     else :
         pathfilefallback = ""
