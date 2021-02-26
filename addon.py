@@ -48,17 +48,17 @@ def InfoDaemon():
 def set_info(playing_file):
     artist, song, fanart, year, duration, album, dt_end = get_info_playing_file(playing_file)
     if song != "" or artist != "" or album != "":
-      try:
-        list_item = xbmcgui.ListItem()
-        list_item.setPath(xbmc.Player().getPlayingFile())
-        list_item.setArt({"thumb":fanart, "fanart":fanart})
-        list_item.setInfo("music", {"title": song, "artist": artist, "year": year, "duration": duration, "album": album})
-        xbmc.Player().updateInfoTag(list_item)
-        artist_debug = xbmc.Player().getMusicInfoTag().getArtist()
-        if artist_debug == "":
-            xbmc.log("Radio_data: Issue artist : %s" % artist)
-      except:
-        xbmc.log("Radio_data: Can't update InfoTag !")
+       try:
+           list_item = xbmcgui.ListItem()
+           list_item.setPath(xbmc.Player().getPlayingFile())
+           list_item.setArt({"thumb":fanart, "fanart":fanart})
+           list_item.setInfo("music", {"title": song, "artist": artist, "year": year, "duration": duration, "album": album})
+           xbmc.Player().updateInfoTag(list_item)
+           artist_debug = xbmc.Player().getMusicInfoTag().getArtist()
+           if artist_debug == "":
+               xbmc.log("Radio_data: Issue artist : %s" % artist)
+       except:
+           xbmc.log("Radio_data: Can't update InfoTag !")
     xbmc.log("Radio_data: dt_end %s" % dt_end)
     return dt_end
 
@@ -125,265 +125,265 @@ def get_info_playing_file(playing_file):
 def get_info_radiofrance(url):
     xbmc.log("Radio_data: get_info url is %s" % url)
     try:
-      r = requests.get(url)
-      info = r.json()
-      position = 4 
-      # check if the fipette speak, switch to position 4 !
-      # To do : need to use fr time zone ...
-      try:
-        c1 = info["levels"][0]["items"][position]
-        v1 = info["steps"][c1]
-        start = v1["start"]
-        dt_start = datetime.fromtimestamp(start)
-        end = v1["end"]
-        dt_end = datetime.fromtimestamp(end)
-      except:
-        dt_start = datetime.max
-        dt_end = datetime.min
-      dt_now = datetime.now()
-      if dt_now < dt_start or dt_now > dt_end :
-        position = 3
-        # No fipette speak, fall back to normal position : 3
-        c1 = info["levels"][0]["items"][position]
-        v1 = info["steps"][c1]
+        r = requests.get(url)
+        info = r.json()
+        position = 4 
+        # check if the fipette speak, switch to position 4 !
+        # To do : need to use fr time zone ...
         try:
-          start = v1["start"]
-          dt_start = datetime.fromtimestamp(start)
-        except:
-          start = 0
-          dt_start = datetime.min
-        try:
-          end = v1["end"]
-          dt_end = datetime.fromtimestamp(end)
-        except:
-          start = 0
-          dt_end = datetime.min
-      xbmc.log("Radio_data: position %s" % position)
-      xbmc.log("Radio_data: start %s" % dt_start)
-      xbmc.log("Radio_data: end %s" % dt_end)
-      try:
-        artist = v1["highlightedArtists"][0]
-      except:
-        try:
-          artist = v1["authors"]
-        except:
-          artist = ""
-      # Jazz a fip, etc ...
-      xbmc.log("Radio_data: Artists is %s debug 0" % artist)
-      if artist == "" :
-        try:
-          c1 = info["levels"][1]["items"][3]
-          v1 = info["steps"][c1]
-          try:
-            artist = v1["highlightedArtists"][0]
-          except:
-            try:
-              artist = v1["authors"]
-            except:
-              artist = ""
-          try:
+            c1 = info["levels"][0]["items"][position]
+            v1 = info["steps"][c1]
             start = v1["start"]
             dt_start = datetime.fromtimestamp(start)
-          except:
-            start = 0
-            dt_start = datetime.min
-          try:
             end = v1["end"]
             dt_end = datetime.fromtimestamp(end)
-          except:
-            start = 0
-            dt_end = datetime.min
         except:
-          artist = ""
-      xbmc.log("Radio_data: Artists is %s debug 1" % artist)
-      try:
-        song = v1["title"].title()
-      except:
-        song = ""
-      try:
-        album = v1["titreAlbum"]
-      except:
-        album = ""
-      try:
-        year = v1["anneeEditionMusique"]
-      except:
-        year = ""
-      try:
-        fanart = v1["visual"]
-        # If not a picture => Redirection ?
-      except:
-        fanart = ""
-      xbmc.log("Radio_data: Artists is %s debug 2" % artist)
-      xbmc.log("Radio_data: song is %s debug 1" % song)
-      try:
-        # Not Work ???
-        i = song.find("en session live")
-        #re.search('(\d+)$', tmpname).group(0) ) + 1
-        xbmc.log("Radio_data: i is %s debug 1" % i)
-        if i != -1 and artist == "" :
-          xbmc.log("Radio_data: i is %s debug 2" % i)
-          artist = song.replace('en session live', '') # work ?
-          song = 'Session live'           
-          album = v1["titleConcept"]
-      except:
-        pass
-      duration = end - start
-      xbmc.log("Radio_data: Artists is %s" % artist)
+            dt_start = datetime.max
+            dt_end = datetime.min
+        dt_now = datetime.now()
+        if dt_now < dt_start or dt_now > dt_end :
+            position = 3
+            # No fipette speak, fall back to normal position : 3
+            c1 = info["levels"][0]["items"][position]
+            v1 = info["steps"][c1]
+            try:
+                start = v1["start"]
+                dt_start = datetime.fromtimestamp(start)
+            except:
+                start = 0
+                dt_start = datetime.min
+            try:
+                end = v1["end"]
+                dt_end = datetime.fromtimestamp(end)
+            except:
+                start = 0
+                dt_end = datetime.min
+        xbmc.log("Radio_data: position %s" % position)
+        xbmc.log("Radio_data: start %s" % dt_start)
+        xbmc.log("Radio_data: end %s" % dt_end)
+        try:
+            artist = v1["highlightedArtists"][0]
+        except:
+            try:
+                artist = v1["authors"]
+            except:
+                artist = ""
+        # Jazz a fip, etc ...
+        xbmc.log("Radio_data: Artists is %s debug 0" % artist)
+        if artist == "" :
+            try:
+                c1 = info["levels"][1]["items"][3]
+                v1 = info["steps"][c1]
+                try:
+                    artist = v1["highlightedArtists"][0]
+                except:
+                    try:
+                        artist = v1["authors"]
+                    except:
+                        artist = ""
+                try:
+                    start = v1["start"]
+                    dt_start = datetime.fromtimestamp(start)
+                except:
+                    start = 0
+                    dt_start = datetime.min
+                try:
+                    end = v1["end"]
+                    dt_end = datetime.fromtimestamp(end)
+                except:
+                    start = 0
+                    dt_end = datetime.min
+            except:
+                artist = ""
+        xbmc.log("Radio_data: Artists is %s debug 1" % artist)
+        try:
+            song = v1["title"].title()
+        except:
+            song = ""
+        try:
+            album = v1["titreAlbum"]
+        except:
+            album = ""
+        try:
+            year = v1["anneeEditionMusique"]
+        except:
+            year = ""
+        try:
+            fanart = v1["visual"]
+            # If not a picture => Redirection ?
+        except:
+           fanart = ""
+        xbmc.log("Radio_data: Artists is %s debug 2" % artist)
+        xbmc.log("Radio_data: song is %s debug 1" % song)
+        try:
+            # Not Work ???
+            i = song.find("en session live")
+            #re.search('(\d+)$', tmpname).group(0) ) + 1
+            xbmc.log("Radio_data: i is %s debug 1" % i)
+            if i != -1 and artist == "" :
+                xbmc.log("Radio_data: i is %s debug 2" % i)
+                artist = song.replace('en session live', '') # work ?
+                song = 'Session live'           
+                album = v1["titleConcept"]
+        except:
+           pass
+        duration = end - start
+        xbmc.log("Radio_data: Artists is %s" % artist)
     except:
-      song = ""
-      artist = ""
-      album = ""
-      year = ""
-      fanart = ""
-      start = 0
-      end = 0
-      duration = end - start
-      dt_end = datetime.min
+        song = ""
+        artist = ""
+        album = ""
+        year = ""
+        fanart = ""
+        start = 0
+        end = 0
+        duration = end - start
+        dt_end = datetime.min
     return artist, song, fanart, year, duration, album, dt_end
 
 def get_info_graphql(url):
     xbmc.log("Radio_data: get_info graphql url is %s" % url)
     try:
-      r = requests.get(url)
-      info = r.json()
-      v1 = info["data"]["nowList"][0]
-      try:
-        song = v1["song"]["title"].title().encode('utf-8')
-      except:
-        song = ""
-      try:
-        artist = v1["song"]["interpreters"][0]
-      except:
-        artist = ""
-      try:
-        album = v1["song"]["album"]
-      except:
-        album = ""
-      try:
-        year = v1["song"]["year"]
-      except:
-        year = ""
-      try:
-        fanart = v1["song"]["cover"]
-      except:
-        fanart = ""
-      try:
-        start = v1["playing_item"]["start_time"]
-      except:
-        start = 0
-      try:
-        end = v1["playing_item"]["end_time"]
-        dt_end = datetime.fromtimestamp(end)
-      except:
-        end = 0
-        dt_end = datetime.min
-      xbmc.log("Radio_data: grahp_gl end %s" % end)
-      xbmc.log("Radio_data: grahp_gl dt_end %s" % dt_end)
-      i = song.find('en session live')
-      if i != -1 and artist == "" :
-          artist = song.replace('en session live', '') # work ?
-          song = 'Session live'           
-          album = ""
-      duration = end - start
-      xbmc.log("Radio_data: Artists is %s" % artist)
+        r = requests.get(url)
+        info = r.json()
+        v1 = info["data"]["nowList"][0]
+        try:
+            song = v1["song"]["title"].title().encode('utf-8')
+        except:
+            song = ""
+        try:
+            artist = v1["song"]["interpreters"][0]
+        except:
+            artist = ""
+        try:
+            album = v1["song"]["album"]
+        except:
+            album = ""
+        try:
+            year = v1["song"]["year"]
+        except:
+            year = ""
+        try:
+            fanart = v1["song"]["cover"]
+        except:
+            fanart = ""
+        try:
+            start = v1["playing_item"]["start_time"]
+        except:
+            start = 0
+        try:
+            end = v1["playing_item"]["end_time"]
+            dt_end = datetime.fromtimestamp(end)
+        except:
+            end = 0
+            dt_end = datetime.min
+        xbmc.log("Radio_data: grahp_gl end %s" % end)
+        xbmc.log("Radio_data: grahp_gl dt_end %s" % dt_end)
+        i = song.find('en session live')
+        if i != -1 and artist == "" :
+            artist = song.replace('en session live', '') # work ?
+            song = 'Session live'           
+            album = ""
+        duration = end - start
+        xbmc.log("Radio_data: Artists is %s" % artist)
     except:
-      song = ""
-      artist = ""
-      album = ""
-      year = ""
-      fanart = ""
-      start = 0
-      end = 0
-      duration = end - start
-      dt_end = datetime.min
+        song = ""
+        artist = ""
+        album = ""
+        year = ""
+        fanart = ""
+        start = 0
+        end = 0
+        duration = end - start
+        dt_end = datetime.min
     return artist, song, fanart, year, duration, album, dt_end
 
 def get_info_radiofrance_basic(url):
     xbmc.log("Radio_data: get_info basic url is %s" % url)
     try:
-      r = requests.get(url)
-      info = r.json()
-      v1 = info["data"]["now"]["playing_item"]
-      try:
-        #song = v1["title"].title().encode('utf-8')
-        song = v1["subtitle"]
-      except:
-        song = ""
-      try:
-          artist = v1["title"]
-      except:
-        artist = ""
-      album = ""
-      year = ""
-      try:
-        fanart = v1["cover"]
-      except:
-        fanart = ""
-      try:
-        start = v1["start_time"]
-      except:
-        start = 0
-      try:
-        end = v1["end_time"]
-        dt_end = datetime.fromtimestamp(end)
-      except:
-        end = 0
-        dt_end = datetime.min
-      i = song.find('en session live')
-      if i != -1 and artist == "" :
-          artist = song.replace('en session live', '') # work ?
-          song = 'Session live'           
-          album = ""
-      duration = end - start
-      xbmc.log("Radio_data: Artists is %s" % artist)
+        r = requests.get(url)
+        info = r.json()
+        v1 = info["data"]["now"]["playing_item"]
+        try:
+            #song = v1["title"].title().encode('utf-8')
+            song = v1["subtitle"]
+        except:
+            song = ""
+        try:
+            artist = v1["title"]
+        except:
+            artist = ""
+        album = ""
+        year = ""
+        try:
+            fanart = v1["cover"]
+        except:
+            fanart = ""
+        try:
+            start = v1["start_time"]
+        except:
+            start = 0
+        try:
+            end = v1["end_time"]
+            dt_end = datetime.fromtimestamp(end)
+        except:
+            end = 0
+            dt_end = datetime.min
+        i = song.find('en session live')
+        if i != -1 and artist == "" :
+            artist = song.replace('en session live', '') # work ?
+            song = 'Session live'           
+            album = ""
+        duration = end - start
+        xbmc.log("Radio_data: Artists is %s" % artist)
     except:
-      song = ""
-      artist = ""
-      album = ""
-      year = ""
-      fanart = ""
-      start = 0
-      end = 0
-      duration = end - start
-      dt_end = datetime.min
+        song = ""
+        artist = ""
+        album = ""
+        year = ""
+        fanart = ""
+        start = 0
+        end = 0
+        duration = end - start
+        dt_end = datetime.min
     return artist, song, fanart, year, duration, album, dt_end
 
 def get_info_jazzradio_xml(url):
     xbmc.log("Radio_data: get_info jazzradio url is %s" % url)
     try:
-      r = requests.get(url)
-      root = ET.fromstring(r.content)
+        r = requests.get(url)
+        root = ET.fromstring(r.content)
 
-      album = ""
-      year = ""
-      start = 0
-      end = 0
-      try:
-        for child in root:
-          for child2 in child:
-            if child2.tag == "chanteur":
-                artist = child2.text
-            if child2.tag == "chanson":
-                song = child2.text
-            if child2.tag == "pochette":
-                fanart = child2.text
-          break
-      except:
+        album = ""
+        year = ""
+        start = 0
+        end = 0
+        try:
+            for child in root:
+                for child2 in child:
+                    if child2.tag == "chanteur":
+                        artist = child2.text
+                    if child2.tag == "chanson":
+                        song = child2.text
+                    if child2.tag == "pochette":
+                        fanart = child2.text
+                break
+        except:
+            song = ""
+            artist = ""
+            fanart = ""
+        duration = end - start
+        xbmc.log("Radio_data: Artists is %s" % artist)
+        xbmc.log("Radio_data: Fan Art is %s" % fanart)
+    except:
         song = ""
         artist = ""
+        album = ""
+        year = ""
         fanart = ""
-      duration = end - start
-      xbmc.log("Radio_data: Artists is %s" % artist)
-      xbmc.log("Radio_data: Fan Art is %s" % fanart)
-    except:
-      song = ""
-      artist = ""
-      album = ""
-      year = ""
-      fanart = ""
-      start = 0
-      end = 0
-      duration = end - start
+        start = 0
+        end = 0
+        duration = end - start
     dt_end = datetime.min
     return artist, song, fanart, year, duration, album, dt_end
 
@@ -395,26 +395,26 @@ def get_info_rfm(url):
     c1 = info["current"]
     year = ""
     try:
-      song = c1["title"].title().encode('utf-8')
+        song = c1["title"].title().encode('utf-8')
     except:
-      song = ""
+        song = ""
     try:
-      artist = c1["artist"]
-      artist.rstrip() # Don't work !
+        artist = c1["artist"]
+        artist.rstrip() # Don't work !
     except:
-      artist = ""
+        artist = ""
     try:
-      album = c1[""]
+        album = c1[""]
     except:
-      album = ""
+        album = ""
     try:
-      fanart = c1["cover"]
+        fanart = c1["cover"]
     except:
-      fanart = ""
+        fanart = ""
     try:
-      duration = c1["duration"]
+        duration = c1["duration"]
     except:
-      duration = ""
+        duration = ""
     dt_end = datetime.min
     xbmc.log("Radio_data: Artists is %s" % artist)
     return artist, song, fanart, year, duration, album, dt_end
@@ -524,21 +524,21 @@ if __name__ == '__main__':
     setfilemenu = xbmcaddon.Addon('plugin.audio.radio-data').getSettingBool("custom_json")
     xbmc.log("Radio-data: setfilemenu is %s" % setfilemenu)
     if setfilemenu :
-      pathfilemenu = xbmcaddon.Addon('plugin.audio.radio-data').getSetting("custom_json_file")
+        pathfilemenu = xbmcaddon.Addon('plugin.audio.radio-data').getSetting("custom_json_file")
     else :
-      filemenu = 'radio-data.json'
-      path = _addon_.getAddonInfo('path').decode('utf-8')
-      pathfilemenu = os.path.join(path, filemenu)
+        filemenu = 'radio-data.json'
+        path = _addon_.getAddonInfo('path').decode('utf-8')
+        pathfilemenu = os.path.join(path, filemenu)
     xbmc.log("Radio-data: pathfilemenu is %s" % pathfilemenu)
     setfallback = xbmcaddon.Addon('plugin.audio.radio-data').getSettingBool("fallback")
     xbmc.log("Radio-data: setfallback is %s" % setfallback)
     if setfallback :
-      pathfallback = xbmcaddon.Addon('plugin.audio.radio-data').getSetting("fallback_path")
-      # Temporary file for Artist slide show.
-      fallback = 'fallback.jpg' 
-      pathfilefallback = os.path.join(pathfallback, fallback)
+        pathfallback = xbmcaddon.Addon('plugin.audio.radio-data').getSetting("fallback_path")
+        # Temporary file for Artist slide show.
+        fallback = 'fallback.jpg' 
+        pathfilefallback = os.path.join(pathfallback, fallback)
     else :
-      pathfilefallback = ""
+        pathfilefallback = ""
     xbmc.log("Radio-data: pathfilefallback is %s" % pathfilefallback)
 
     _url = sys.argv[0]
