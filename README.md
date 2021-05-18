@@ -1,5 +1,6 @@
 # plugin.audio.radio_data
 Only for Kodi v18.
+*** for kodi v19 use the branch wip_kodi_v19 ***
 
 Kodi music addon, webradio with web information provide by Json, xml files...
 
@@ -24,6 +25,8 @@ Ce plugin obtient les informations du titre encours de diffusion à partir du fi
 Fonctionne avec les radios fip (et potentionnellement toutes les radios de france inter) et rfm.
 
 Fonctionne avec la version v18 de Kodi.
+*** Pour kodi v19 utiliser la branche wip_kodi_v19 ***
+
 cf install ppa https://doc.ubuntu-fr.org/kodi pour la v18.
 Prerequis : l'addon Web-PDB.
 Installation du plugin kodi depuis  le terminal :
