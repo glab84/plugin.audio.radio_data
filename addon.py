@@ -222,12 +222,19 @@ def get_info_radiofrance(url):
         try:
             # Not Work ???
             i = song.find("en session live")
-            #re.search('(\d+)$', tmpname).group(0) ) + 1
             xbmc.log("Radio_data: i is %s debug 1" % i)
             if i != -1 and artist == "" :
                 xbmc.log("Radio_data: i is %s debug 2" % i)
                 artist = song.replace("en session live", "") # work ?
                 song = "Session live"           
+                album = v1["titleConcept"]
+            # Work ???
+            i = song.find("Sélection Live :")
+            xbmc.log("Radio_data: i is %s debug 3" % i)
+            if i != -1 :
+                xbmc.log("Radio_data: i is %s debug 4" % i)
+                artist = song.replace("Sélection Live : ", "") # work ?
+                song = "Sélection Live"           
                 album = v1["titleConcept"]
         except:
            pass
