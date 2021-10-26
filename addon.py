@@ -279,11 +279,6 @@ def get_info_graphql(url):
         dt_end = datetime.min
       xbmc.log("Radio_data: grahp_gl end %s" % end)
       xbmc.log("Radio_data: grahp_gl dt_end %s" % dt_end)
-      i = song.find('en session live')
-      if i != -1 and artist == "" :
-          artist = song.replace('en session live', '') # work ?
-          song = 'Session live'           
-          album = ""
       duration = end - start
       xbmc.log("Radio_data: Artists is %s" % artist)
     except:
