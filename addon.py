@@ -201,7 +201,7 @@ def get_info_radiofrance(url):
                 artist = ""
         xbmc.log("Radio_data: Artists is %s debug 1" % artist)
         try:
-            song = v1["title"].title()
+            song = v1["title"]
         except:
             song = ""
         try:
@@ -252,7 +252,7 @@ def get_info_graphql(url):
         info = r.json()
         v1 = info["data"]["nowList"][0]
         try:
-            song = v1["song"]["title"].title().encode("utf-8")
+            song = v1["song"]["title"].encode("utf-8")
         except:
             song = ""
         try:
@@ -304,7 +304,6 @@ def get_info_radiofrance_basic(url):
         info = r.json()
         v1 = info["data"]["now"]["playing_item"]
         try:
-            #song = v1["title"].title().encode("utf-8")
             song = v1["subtitle"]
         except:
             song = ""
@@ -394,7 +393,7 @@ def get_info_rfm(url):
     c1 = info["current"]
     year = ""
     try:
-        song = c1["title"].title().encode("utf-8")
+        song = c1["title"].encode("utf-8")
     except:
         song = ""
     try:
