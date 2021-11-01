@@ -24,7 +24,7 @@ Ce plugin obtient les informations du titre encours de diffusion à partir du fi
 Fonctionne avec les radios fip (et potentionnellement toutes les radios de france inter) et rfm.
 
 Fonctionne avec la version v19 de Kodi et supérieure.
-cf install ppa https://doc.ubuntu-fr.org/kodi pour la v19.
+
 Prerequis : l'addon Web-PDB.
 Installation du plugin kodi depuis  le terminal :
 cd .kodi/addons

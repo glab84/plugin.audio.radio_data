@@ -295,6 +295,7 @@ def get_info_graphql(url):
         end = 0
         duration = end - start
         dt_end = datetime.min
+
     return artist, song, fanart, year, duration, album, dt_end
 
 def get_info_radiofrance_basic(url):
