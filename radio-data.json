@@ -31,7 +31,7 @@
         	          "stream_url": "https://icecast.radiofrance.fr/fipworld-hifi.aac",
         	          "radiodata_url": "https://www.fip.fr/latest/api/graphql?operationName=NowList&variables=%7B%22bannerPreset%22%3A%22266x266%22%2C%22stationIds%22%3A%5B69%5D%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%22151ca055b816d28507dae07f9c036c02031ed54e18defc3d16feee2551e9a731%22%7D%7D",
         	          "radiodata_type": "rf_json_graphql"},
-        	        { "value": "Fip Reggae_graphql",
+        	        { "value": "Fip Reggae",
         	          "fanart": "https://cdn.radiofrance.fr/s3/cruiser-production/2019/06/15a58f25-86a5-4b1a-955e-5035d9397da3/200x200_fip-reggae_ok.jpg",
         	          "stream_url": "https://icecast.radiofrance.fr/fipreggae-hifi.aac",
         	          "radiodata_url": "https://www.fip.fr/latest/api/graphql?operationName=NowList&variables=%7B%22bannerPreset%22%3A%22266x266%22%2C%22stationIds%22%3A%5B71%5D%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%22151ca055b816d28507dae07f9c036c02031ed54e18defc3d16feee2551e9a731%22%7D%7D",
