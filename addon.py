@@ -64,6 +64,9 @@ def set_info(playing_file):
        except:
            xbmc.log("Radio_data: Can't update InfoTag !")
     xbmc.log("Radio_data: dt_end %s" % dt_end)
+    if duration == 3600:
+       # 3600 = Jazz a fip => to be ignore.
+       dt_end = datetime.now()
     return dt_end
 
 # menu.json management
