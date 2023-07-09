@@ -93,6 +93,8 @@ def get_info_playing_file(playing_file):
                 artist, song, fanart, year, duration, album, dt_end = get_info_radiofrance(radiodata_file)
             elif radiodata_type == "rf_json_graphql" :
                 artist, song, fanart, year, duration, album, dt_end = get_info_graphql(radiodata_file)
+            elif radiodata_type == "rf_json_api21" :
+                artist, song, fanart, year, duration, album, dt_end = get_info_radiofrance_api21(radiodata_file)
             elif radiodata_type == "rf_json_basic" :
                 artist, song, fanart, year, duration, album, dt_ent = get_info_radiofrance_basic(radiodata_file)
             elif radiodata_type == "rfm_json" :
@@ -300,6 +302,84 @@ def get_info_graphql(url):
         dt_end = datetime.min
 
     return artist, song, fanart, year, duration, album, dt_end
+
+def get_info_radiofrance_api21(url):                                                                      
+    xbmc.log("Radio_data: get_info basic url is %s" % url)
+    try:                                                                                              
+        r = requests.get(url)                               
+        info = r.json()                                                                                         
+        v1 = info["now"]                                
+        try:                                                                                                    
+            song = v1["secondLine"]            
+        except:                                                                                   
+            song = ""                                                
+        try:                                                                                                                
+            artist = v1["firstLine"]                              
+        except:                                                      
+            artist = ""                
+        try:                                                     
+            album = v1["song"]["release"]["title"]    
+        except:                                          
+            album = ""                        
+        try:                                                    
+            year = v1["song"]["year"]                                         
+        except:                                           
+            year = ""                       
+        try:                                                      
+            fanart = v1["cardVisual"]["src"]                   
+        except:                                               
+            fanart = ""                           
+        try:                                                  
+            start = v1["startTime"]                  
+        except:                                                                                        
+            start = 0                                                                               
+        try:                                                                
+            end = v1["endTime"]                                              
+            dt_end = datetime.fromtimestamp(end)                                 
+        except:                                       
+            end = 0                                        
+            dt_end = datetime.min                         
+        i = song.find("en session live")                                                                   
+        if i != -1 and artist == "" :                           
+            artist = song.replace("en session live", "") # work ?
+            song = "Session live"                                 
+            album = ""                                    
+        try:                                                                                          
+            year = v1["song"]["year"]                       
+        except:                                                                                                 
+            year = ""                                   
+        try:                                                                                                    
+            fanart = v1["cardVisual"]["src"]   
+        except:                                                                                   
+            fanart = ""                                              
+        try:                                                                                                                
+            start = v1["startTime"]                               
+        except:                                                      
+            start = 0                  
+        try:                                                     
+            end = v1["endTime"]                       
+            dt_end = datetime.fromtimestamp(end)         
+        except:                               
+            end = 0                                             
+            dt_end = datetime.min                                             
+        i = song.find("en session live")                  
+        if i != -1 and artist == "" :           
+            artist = song.replace("en session live", "") # work ? 
+            song = "Session live"                              
+            album = ""                                        
+        duration = end - start                    
+        xbmc.log("Radio_data: Artists is %s" % artist)        
+    except:                                                      
+        song = ""                                                                                      
+        artist = ""                                                                                 
+        album = ""                                                          
+        year = ""                                                            
+        fanart = ""                                                              
+        start = 0                                     
+        end = 0                                            
+        duration = end - start                            
+        dt_end = datetime.min                                                                              
+    return artist, song, fanart, year, duration, album, dt_end   
 
 def get_info_radiofrance_basic(url):
     xbmc.log("Radio_data: get_info basic url is %s" % url)
