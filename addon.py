@@ -310,11 +310,11 @@ def get_info_radiofrance_api21(url):
         info = r.json()                                                                                         
         v1 = info["now"]                                
         try:                                                                                                    
-            song = v1["secondLine"]            
+            song = v1["firstLine"]            
         except:                                                                                   
             song = ""                                                
         try:                                                                                                                
-            artist = v1["firstLine"]                              
+            artist = v1["secondLine"]                              
         except:                                                      
             artist = ""                
         try:                                                     
