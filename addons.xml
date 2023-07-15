@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<addons><addon id="plugin.audio.radio-data" name="Radio data" provider-name="Gilles Labrot" version="0.0.3">
+	<requires>
+		<import addon="xbmc.python" version="3.0.0" />
+		<import addon="script.module.requests" version="2.22.0+matrix.1" />
+		<import addon="script.module.beautifulsoup4" version="4.3.0" />
+		<import addon="script.module.kodi-six" />
+	</requires>
+	<extension library="addon.py" point="xbmc.python.pluginsource">
+		<provides>audio</provides>
+	</extension>
+	<extension point="xbmc.addon.metadata">
+		<summary lang="en_gb">Listen to custom radio streams with station fanart and on-screen track information</summary>
+		<description lang="en_gb" />
+		<disclaimer lang="en_gb" />
+		<language />
+		<platform>all</platform>
+		<license />
+		<forum />
+		<website />
+		<email />
+		<source>https://github.com/glab84/plugin.audio.radio_data</source>
+		<news>
+			v0.0.3 (2023-07-09)
+			- Update radiofrance api 2.1
+			v0.0.1 (2019-10-04)
+			- Initial release
+		</news>
+		<assets>
+			<icon>resources/media/icon.png</icon>
+		</assets>
+	</extension>
+	<extension point="xbmc.addon.repository">
+		<info />
+		<checksum />
+		<datadir zip="true" />
+	</extension>
+</addon></addons>
