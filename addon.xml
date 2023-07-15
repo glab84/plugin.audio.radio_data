@@ -19,7 +19,7 @@
 		<forum/>
 		<website/>
 		<email/>
-		<source/>
+		<source>https://github.com/glab84/plugin.audio.radio_data</source>
 		<news>
 			v0.0.3 (2023-07-09)
 			- Update radiofrance api 2.1
