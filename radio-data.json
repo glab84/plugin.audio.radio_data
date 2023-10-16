@@ -51,7 +51,7 @@
         	          "stream_url": "https://icecast.radiofrance.fr/fippop-hifi.aac",
         	          "radiodata_url": "https://www.radiofrance.fr/fip/api/live/webradios/fip_electro",
         	          "radiodata_type": "rf_json_api21"},
-			{ "value": "Fip Sacré Français !",
+			{ "value": "Fip Sacre Francais !",
         	          "fanart": "https://www.radiofrance.fr/s3/cruiser-production/2023/08/26e7bd76-b723-487d-8abd-1b61b7f9dd47/860_sc_400x400-sc-sacre-francais.webp",
         	          "stream_url": "https://icecast.radiofrance.fr/fipsacrefrancais-hifi.aac",
         	          "radiodata_url": "https://www.radiofrance.fr/fip/api/live/webradios/fip_sacre_francais",
