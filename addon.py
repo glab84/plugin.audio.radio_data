@@ -11,6 +11,7 @@ import urllib.request
 import urllib.error
 import xml.etree.ElementTree as ET
 from datetime import datetime
+from urllib.request import urlopen 
 from urllib.parse import urlencode
 from urllib.parse import parse_qsl
 from kodi_six import xbmc, xbmcgui, xbmcvfs, xbmcplugin, xbmcaddon
@@ -71,32 +72,50 @@ def set_info(playing_file):
 
 # menu.json management
 def radiodata_menu_radiodata(menujson, url):
+    xbmc.log("radiodata_menu_radiodata: menujson %s" % menujson)
+    xbmc.log("radiodata_menu_radiodata: url %s" % url)
+
+    if url == "" :
+      return "", "", "", ""
+
     with open(menujson) as json_file:
         menu = json.load(json_file)
 
     for p1 in menu["menu"]:
-        for p2 in p1["contents"]["menuitem"]:
-           if p2["stream_url"] == url:
-               return p2["radiodata_type"], p2["radiodata_url"], p2["fanart"]
-    return "", "", ""
+        # si json
+        try:
+          rf_url_json = p1["rf_url_json"]
+          xbmc.log("radiodata_menu_radiodata: rf_url_json %s" % rf_url_json)
+          response = urlopen(rf_url_json) 
+          data_json = json.loads(response.read()) 
+  
+          for p2 in data_json:
+            try: 
+              if p2["streams"]["live"][0]["url"] == url:
+                visual = p2["logo"]["webpSrc"]
+                name = p2["name"]
+                return name, "rf_url_json", rf_url_json, visual
+              xbmc.log("radiodata_menu_radiodata: url %s" % p2["streams"]["live"][0]["url"] )
+            except:
+              visual = ""
+              name = ""
+        except:
+          for p2 in p1["contents"]["menuitem"]:
+             if p2["stream_url"] == url:
+                 return "", p2["radiodata_type"], p2["radiodata_url"], p2["fanart"]
+    return "", "", "", ""
 
 def get_info_playing_file(playing_file):
     xbmc.log("Radio_data: playing_file %s" % playing_file)
-    radiodata_type, radiodata_file, radiodata_fanart = radiodata_menu_radiodata(pathfilemenu, playing_file)
+    radio_name, radiodata_type, radiodata_file, radiodata_fanart = radiodata_menu_radiodata(pathfilemenu, playing_file)
     dt_end = datetime.min
     if radiodata_type != "" and radiodata_file != "" : 
         xbmc.log("Radio_data: type %s " % radiodata_type)
         xbmc.log("Radio_data: file %s " % radiodata_file)
         
         try:
-            if radiodata_type == "rf_json" :
-                artist, song, fanart, year, duration, album, dt_end = get_info_radiofrance(radiodata_file)
-            elif radiodata_type == "rf_json_graphql" :
-                artist, song, fanart, year, duration, album, dt_end = get_info_graphql(radiodata_file)
-            elif radiodata_type == "rf_json_api21" :
-                artist, song, fanart, year, duration, album, dt_end = get_info_radiofrance_api21(radiodata_file)
-            elif radiodata_type == "rf_json_basic" :
-                artist, song, fanart, year, duration, album, dt_ent = get_info_radiofrance_basic(radiodata_file)
+            if radiodata_type == "rf_url_json" :
+                artist, song, fanart, year, duration, album, dt_ent = get_info_radiofrance_url_json(radiodata_file, radio_name)
             elif radiodata_type == "rfm_json" :
                 artist, song, fanart, year, duration, album, dt_ent = get_info_rfm(radiodata_file)
             elif radiodata_type == "jazzradio_xml" :
@@ -126,249 +145,52 @@ def get_info_playing_file(playing_file):
           duration = ""
           album = ""
           dt_end = datetime.min
+    xbmc.log("Radio_data if : fanart %s " % fanart)
     if fanart == "" and radiodata_fanart != "":
         xbmc.log("Radio_data: fall back %s " % radiodata_fanart)
         fanart = radiodata_fanart
     return artist, song, fanart, year, duration, album, dt_end
 
-def get_info_radiofrance(url):
-    xbmc.log("Radio_data: get_info url is %s" % url)
-    try:
-        r = requests.get(url)
-        info = r.json()
-        position = 4 
-        # check if the fipette speak, switch to position 4 !
-        # To do : need to use fr time zone ...
-        try:
-            c1 = info["levels"][0]["items"][position]
-            v1 = info["steps"][c1]
-            start = v1["start"]
-            dt_start = datetime.fromtimestamp(start)
-            end = v1["end"]
-            dt_end = datetime.fromtimestamp(end)
-        except:
-            dt_start = datetime.max
-            dt_end = datetime.min
-        dt_now = datetime.now()
-        if dt_now < dt_start or dt_now > dt_end :
-            position = 3
-            # No fipette speak, fall back to normal position : 3
-            c1 = info["levels"][0]["items"][position]
-            v1 = info["steps"][c1]
-            try:
-                start = v1["start"]
-                dt_start = datetime.fromtimestamp(start)
-            except:
-                start = 0
-                dt_start = datetime.min
-            try:
-                end = v1["end"]
-                dt_end = datetime.fromtimestamp(end)
-            except:
-                start = 0
-                dt_end = datetime.min
-        xbmc.log("Radio_data: position %s" % position)
-        xbmc.log("Radio_data: start %s" % dt_start)
-        xbmc.log("Radio_data: end %s" % dt_end)
-        try:
-            artist = v1["highlightedArtists"][0]
-        except:
-            try:
-                artist = v1["authors"]
-            except:
-                artist = ""
-        # Jazz a fip, etc ...
-        xbmc.log("Radio_data: Artists is %s debug 0" % artist)
-        if artist == "" :
-            try:
-                c1 = info["levels"][1]["items"][3]
-                v1 = info["steps"][c1]
-                try:
-                    artist = v1["highlightedArtists"][0]
-                except:
-                    try:
-                        artist = v1["authors"]
-                    except:
-                        artist = ""
-                try:
-                    start = v1["start"]
-                    dt_start = datetime.fromtimestamp(start)
-                except:
-                    start = 0
-                    dt_start = datetime.min
-                try:
-                    end = v1["end"]
-                    dt_end = datetime.fromtimestamp(end)
-                except:
-                    start = 0
-                    dt_end = datetime.min
-            except:
-                artist = ""
-        xbmc.log("Radio_data: Artists is %s debug 1" % artist)
-        try:
-            song = v1["title"]
-        except:
-            song = ""
-        try:
-            album = v1["titreAlbum"]
-        except:
-            album = ""
-        try:
-            year = v1["anneeEditionMusique"]
-        except:
-            year = ""
-        try:
-            fanart = v1["visual"]
-            # If not a picture => Redirection ?
-        except:
-           fanart = ""
-        xbmc.log("Radio_data: Artists is %s debug 2" % artist)
-        xbmc.log("Radio_data: song is %s debug 1" % song)
-        try:
-            # Not Work ???
-            i = song.find("en session live")
-            #re.search('(\d+)$', tmpname).group(0) ) + 1
-            xbmc.log("Radio_data: i is %s debug 1" % i)
-            if i != -1 and artist == "" :
-                xbmc.log("Radio_data: i is %s debug 2" % i)
-                artist = song.replace("en session live", "") # work ?
-                song = "Session live"           
-                album = v1["titleConcept"]
-        except:
-           pass
-        duration = end - start
-        xbmc.log("Radio_data: Artists is %s" % artist)
-    except:
-        song = ""
-        artist = ""
-        album = ""
-        year = ""
-        fanart = ""
-        start = 0
-        end = 0
-        duration = end - start
-        dt_end = datetime.min
-    return artist, song, fanart, year, duration, album, dt_end
-
-def get_info_graphql(url):
-    xbmc.log("Radio_data: get_info graphql url is %s" % url)
-    try:
-        r = requests.get(url)
-        info = r.json()
-        v1 = info["data"]["nowList"][0]
-        try:
-            song = v1["song"]["title"].encode("utf-8")
-        except:
-            song = ""
-        try:
-            artist = v1["song"]["interpreters"][0]
-        except:
-            artist = ""
-        try:
-            album = v1["song"]["album"]
-        except:
-            album = ""
-        try:
-            year = v1["song"]["year"]
-        except:
-            year = ""
-        try:
-            fanart = v1["song"]["cover"]
-        except:
-            fanart = ""
-        try:
-            start = v1["playing_item"]["start_time"]
-        except:
-            start = 0
-        try:
-            end = v1["playing_item"]["end_time"]
-            dt_end = datetime.fromtimestamp(end)
-        except:
-            end = 0
-            dt_end = datetime.min
-        xbmc.log("Radio_data: grahp_gl end %s" % end)
-        xbmc.log("Radio_data: grahp_gl dt_end %s" % dt_end)
-        duration = end - start
-        xbmc.log("Radio_data: Artists is %s" % artist)
-    except:
-        song = ""
-        artist = ""
-        album = ""
-        year = ""
-        fanart = ""
-        start = 0
-        end = 0
-        duration = end - start
-        dt_end = datetime.min
-
-    return artist, song, fanart, year, duration, album, dt_end
-
-def get_info_radiofrance_api21(url):                                                                      
-    xbmc.log("Radio_data: get_info basic url is %s" % url)
+def get_info_rf_transitor(radio_id):                                                                      
+    xbmc.log("Radio_data: get_info transitor id is %s" % radio_id)
     try:                                                                                              
+        url = "https://api.radiofrance.fr/livemeta/live/%s/transistor_musical_player?preset=400x400" % radio_id
+        xbmc.log("Radio_data: get_info transitor url is %s" % url)
         r = requests.get(url)                               
         info = r.json()                                                                                         
         v1 = info["now"]                                
         try:                                                                                                    
-            song = v1["firstLine"]            
+            secondLine = v1["secondLine"]            
+            # secondLine : artist . song
+            # Sample : IJulia Fischer • Caprice pour violon en mi min op 1 n°15
+            m = re.search('(.*) • (.*)', secondLine)
+            artist = m.group(1)
+            song = m.group(2)
+            album = ""                                                          
+            year = ""                                                            
         except:                                                                                   
-            song = ""                                                
-        try:                                                                                                                
-            artist = v1["secondLine"]                              
-        except:                                                      
+            secondLine = ""                                                
             artist = ""                
-        try:                                                     
-            album = v1["song"]["release"]["title"]    
-        except:                                          
             album = ""                        
-        try:                                                    
-            year = v1["song"]["year"]                                         
-        except:                                           
             year = ""                       
         try:                                                      
-            fanart = v1["cardVisual"]["src"]                   
+            fanart = v1["cover"]                   
         except:                                               
             fanart = ""                           
         try:                                                  
             start = v1["startTime"]                  
         except:                                                                                        
-            start = 0                                                                               
+            start = 0
         try:                                                                
             end = v1["endTime"]                                              
             dt_end = datetime.fromtimestamp(end)                                 
         except:                                       
             end = 0                                        
             dt_end = datetime.min                         
-        i = song.find("en session live")                                                                   
-        if i != -1 and artist == "" :                           
-            artist = song.replace("en session live", "") # work ?
-            song = "Session live"                                 
-            album = ""                                    
-        try:                                                                                          
-            year = v1["song"]["year"]                       
-        except:                                                                                                 
-            year = ""                                   
-        try:                                                                                                    
-            fanart = v1["cardVisual"]["src"]   
-        except:                                                                                   
-            fanart = ""                                              
-        try:                                                                                                                
-            start = v1["startTime"]                               
-        except:                                                      
-            start = 0                  
-        try:                                                     
-            end = v1["endTime"]                       
-            dt_end = datetime.fromtimestamp(end)         
-        except:                               
-            end = 0                                             
-            dt_end = datetime.min                                             
-        i = song.find("en session live")                  
-        if i != -1 and artist == "" :           
-            artist = song.replace("en session live", "") # work ? 
-            song = "Session live"                              
-            album = ""                                        
+        
         duration = end - start                    
         xbmc.log("Radio_data: Artists is %s" % artist)        
+        xbmc.log("Radio_data: fanart is %s" % fanart)        
     except:                                                      
         song = ""                                                                                      
         artist = ""                                                                                 
@@ -428,6 +250,55 @@ def get_info_radiofrance_basic(url):
         end = 0
         duration = end - start
         dt_end = datetime.min
+    return artist, song, fanart, year, duration, album, dt_end
+
+def get_info_radiofrance_url_json(url, name):
+    xbmc.log("Radio_data: get_info url json is %s" % url)
+    xbmc.log("Radio_data: get_info url json name is %s" % name)
+    try:
+       response = urlopen(url) 
+       data_json = json.loads(response.read()) 
+  
+       for p2 in data_json:
+         xbmc.log("Radio_data: get_info for %s" % p2["name"])
+         if name == p2["name"]:
+           radio_id = p2["id"]
+           p3 = p2["live"]["now"]
+           song = p3["firstLine"]
+           artist = p3["secondLine"]
+           try:
+             fanart = p3["cardVisual"]["webpSrc"]
+           except:
+             artist, song, fanart, year, duration, album, dt_ent = get_info_rf_transitor(radio_id)
+             # during live broadcasts falldown on transitor infos. Works ?
+             
+           try:
+             start = p3["startTime"]
+             end = p3["endTime"]
+             dt_end = datetime.fromtimestamp(end)
+             duration = end - start
+           except:
+             start = 0
+             end = 0
+             dt_end = 0
+             duration = 0
+           break  
+
+       xbmc.log("Radio_data: get_info fanart is %s" % fanart)
+       album = ""
+       xbmc.log("Radio_data: get_info album is %s" % album)
+       year = ""
+       xbmc.log("Radio_data: Artists is %s" % artist)
+    except:
+       song = ""
+       artist = ""
+       album = ""
+       year = ""
+       fanart = ""
+       start = 0
+       end = 0
+       duration = end - start
+       dt_end = datetime.min
     return artist, song, fanart, year, duration, album, dt_end
 
 def get_info_jazzradio_xml(url):
@@ -536,24 +407,48 @@ def build_menu_contents(menujson, id):
     n = 0
     for p1 in menu["menu"]:
         if p1["id"] == id:
-            for p2 in p1["contents"]["menuitem"]:
-               n += 1
-               title = p2["value"]
-               flux = p2["stream_url"]
-               if p2["fanart"] != "" :
-                  visual = p2["fanart"]
-               else:
-                  artist, song, fanart, year, duration, album, dt_end = get_info_playing_file(flux)
-                  visual = fanart
-               list_item = xbmcgui.ListItem(label=title)
-               #list_item = xbmcgui.ListItem(label=title, thumbnailImage=visual)
-               # setArt
+            # si json
+            try:
+              rf_url_json = p1["rf_url_json"]
+              response = urlopen(rf_url_json) 
+              data_json = json.loads(response.read()) 
+  
+              for p2 in data_json:
+                 try:
+                   n += 1
+                   title = p2["name"]
+                   flux = p2["streams"]["live"][0]["url"]
+                   visual = p2["logo"]["webpSrc"]
+                   list_item = xbmcgui.ListItem(label=title)
 
-               list_item.setArt({"thumb": visual, "fanart": p1["fanart"]})
-               list_item.setProperty("IsPlayable", "true")
-               list_item.setInfo("music", {"title": title, "genre": title})
-               url = build_url({"mode": "stream", "url": flux, "title": title})
-               song_list.append((url, list_item, False))
+                   list_item.setArt({"thumb": visual, "fanart": p1["fanart"]})
+                   list_item.setProperty("IsPlayable", "true")
+                   list_item.setInfo("music", {"title": title, "genre": title})
+                   url = build_url({"mode": "stream", "url": flux, "title": title})
+                   song_list.append((url, list_item, False))
+                 except:
+                   flux = ""  
+                   # no thing to do, how to check define value ?
+            except:
+              # sinon
+              for p2 in p1["contents"]["menuitem"]:
+                 n += 1
+                 title = p2["value"]
+                 flux = p2["stream_url"]
+                 if p2["fanart"] != "" :
+                    visual = p2["fanart"]
+                 else:
+                    artist, song, fanart, year, duration, album, dt_end = get_info_playing_file(flux)
+                    visual = fanart
+                 list_item = xbmcgui.ListItem(label=title)
+                 #list_item = xbmcgui.ListItem(label=title, thumbnailImage=visual)
+                 # setArt
+
+                 list_item.setArt({"thumb": visual, "fanart": p1["fanart"]})
+                 list_item.setProperty("IsPlayable", "true")
+                 list_item.setInfo("music", {"title": title, "genre": title})
+                 url = build_url({"mode": "stream", "url": flux, "title": title})
+                 song_list.append((url, list_item, False))
 
     xbmcplugin.addDirectoryItems(addon_handle, song_list, len(song_list))
     xbmcplugin.setContent(addon_handle, "songs")
@@ -571,7 +466,7 @@ def play_song(url):
     xbmc.log("Radio-data: Play_url is %s" % url)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True , listitem = list_item)
     xbmc.log("Radio-data: pathfilemenu is %s" % pathfilemenu)
-    radiodata_type, radiodata_file, radiodata_fanart = radiodata_menu_radiodata(pathfilemenu, url)
+    radio_name, radiodata_type, radiodata_file, radiodata_fanart = radiodata_menu_radiodata(pathfilemenu, url)
     xbmc.log("Radio-data: fanart is %s" % radiodata_fanart)
     xbmcvfs.copy(radiodata_fanart, pathfilefallback)
     xbmc.Player().play(item = url, listitem = list_item)
