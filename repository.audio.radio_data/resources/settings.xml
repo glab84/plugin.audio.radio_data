@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<settings version="1">
+	<section id="plugin.audio.radio-data">
+		<category id="general" label="">
+			<group id="1">
+				<setting help="" id="custom_json" label="32109" type="boolean">
+					<level>0</level>
+					<default>false</default>
+					<control type="toggle"/>
+				</setting>
+				<!-- Why type="file" not work ? perhaps only on v19 ? -->
+				<setting type="string" id="custom_json_file" label="32110" default="">
+					<dependencies>
+						<dependency type="enable" setting="custom_json">true</dependency>
+					</dependencies>
+					<level>0</level>
+    					<default/>
+    					<constraints>
+    					    <allowempty>true</allowempty>
+    					</constraints>
+    					<control type="edit" format="string">
+    					    <heading>32110</heading>
+    					</control>
+				</setting>
+			</group>
+			<group id="2">
+				<setting help="" id="fallback" label="32111" type="boolean">
+					<level>0</level>
+					<default>false</default>
+					<control type="toggle"/>
+				</setting>
+				<setting type="string" id="fallback_path" label="32112" default="">
+					<dependencies>
+						<dependency type="enable" setting="fallback">true</dependency>
+					</dependencies>
+					<level>0</level>
+    					<default/>
+    					<constraints>
+    					    <allowempty>true</allowempty>
+    					</constraints>
+    					<control type="edit" format="string">
+    					    <heading>32112</heading>
+    					</control>
+				</setting>
+			</group>
+		</category>
+	</section>
+</settings>
