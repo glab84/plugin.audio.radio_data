@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="repository.audio.radio_data" name="Radio data Repository" provider-name="glab84" version="0.1.2">
+    <requires>
+        <import addon="xbmc.addon" version="12.0.0"/>
+    </requires>
+	<extension name="Repo Radio data" point="xbmc.addon.repository">
+		<info compressed="false">https://raw.githubusercontent.com/glab84/repository.audio.radio_data/main/addons.xml</info>
+		<checksum>https://raw.githubusercontent.com/glab84/repository.audio.radio_data/main/addons.xml.md5</checksum>
+		<datadir zip="true">https://raw.githubusercontent.com/glab84/repository.audio.radio_data/main/</datadir>
+	</extension>
+	<extension point="xbmc.addon.metadata">
+		<summary lang="en">Home of glab84</summary>
+		<description lang="en">Radio data Repository</description>
+		<platform>all</platform>
+	</extension>
+</addon>
