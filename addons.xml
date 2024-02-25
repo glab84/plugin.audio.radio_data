@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<addons><addon id="plugin.audio.radio-data" name="Radio data" provider-name="Gilles Labrot" version="0.0.3">
+<addons><addon id="plugin.audio.radio_data" name="Radio data" provider-name="Gilles Labrot" version="0.0.4">
 	<requires>
 		<import addon="xbmc.python" version="3.0.0" />
 		<import addon="script.module.requests" version="2.22.0+matrix.1" />
@@ -21,6 +21,8 @@
 		<email />
 		<source>https://github.com/glab84/plugin.audio.radio_data</source>
 		<news>
+			v0.0.4 (2024-02-24)
+			- Big update, read data json direct in web
 			v0.0.3 (2023-07-09)
 			- Update radiofrance api 2.1
 			v0.0.1 (2019-10-04)
