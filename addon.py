@@ -161,18 +161,17 @@ def get_info_rf_transitor(radio_id):
         v1 = info["now"]                                
         try:                                                                                                    
             secondLine = v1["secondLine"]            
+            xbmc.log("Radio_data: get_info transitor secondLine is %s" % secondLine)        
             # secondLine : artist . song
             # Sample : IJulia Fischer • Caprice pour violon en mi min op 1 n°15
             m = re.search('(.*) • (.*)', secondLine)
             artist = m.group(1)
             song = m.group(2)
-            album = ""                                                          
-            year = ""                                                            
+            xbmc.log("Radio_data: get_info transitor song is %s" % song)        
         except:                                                                                   
             secondLine = ""                                                
+            song = ""
             artist = ""                
-            album = ""                        
-            year = ""                       
         try:                                                      
             fanart = v1["cover"]                   
         except:                                               
@@ -189,19 +188,17 @@ def get_info_rf_transitor(radio_id):
             dt_end = datetime.min                         
         
         duration = end - start                    
-        xbmc.log("Radio_data: Artists is %s" % artist)        
-        xbmc.log("Radio_data: fanart is %s" % fanart)        
+        xbmc.log("Radio_data: get_info transitor Artists is %s" % artist)        
+        xbmc.log("Radio_data: get_info transitor fanart is %s" % fanart)        
     except:                                                      
-        song = ""                                                                                      
         artist = ""                                                                                 
-        album = ""                                                          
-        year = ""                                                            
+        song = ""                                                                                      
         fanart = ""                                                              
         start = 0                                     
         end = 0                                            
         duration = end - start                            
         dt_end = datetime.min                                                                              
-    return artist, song, fanart, year, duration, album, dt_end   
+    return artist, song, fanart, duration, dt_end   
 
 def get_info_radiofrance_basic(url):
     xbmc.log("Radio_data: get_info basic url is %s" % url)
@@ -268,10 +265,30 @@ def get_info_radiofrance_url_json(url, name):
            artist = p3["secondLine"]
            try:
              fanart = p3["cardVisual"]["webpSrc"]
+             try:
+               album = p3["song"]["release"]["title"]
+               year = p3["song"]["year"]
+             except:		
+               album = p3["secondLine"]
+               year = ""
+             try:
+               copy_right = p3["cardVisual"]["copyright"]
+             except:  
+               copy_right = ""
+             xbmc.log("Radio_data: get_info url json copy_right is %s" % copy_right)
+             xbmc.log("Radio_data: get_info url json album is %s" % album)
+             xbmc.log("Radio_data: get_info url json year is %s" % year)
+             xbmc.log("Radio_data: get_info url json song is %s" % song)
+             if copy_right != None or p3["song"] == None:
+               artist, song, fanart, duration, dt_ent = get_info_rf_transitor(radio_id)
+               # during live broadcasts falldown on transitor infos. Works ?
+
            except:
-             artist, song, fanart, year, duration, album, dt_ent = get_info_rf_transitor(radio_id)
+             artist, song, fanart, duration, dt_ent = get_info_rf_transitor(radio_id)
              # during live broadcasts falldown on transitor infos. Works ?
-             
+             album = ""
+             year = ""
+
            try:
              start = p3["startTime"]
              end = p3["endTime"]
@@ -285,9 +302,7 @@ def get_info_radiofrance_url_json(url, name):
            break  
 
        xbmc.log("Radio_data: get_info fanart is %s" % fanart)
-       album = ""
        xbmc.log("Radio_data: get_info album is %s" % album)
-       year = ""
        xbmc.log("Radio_data: Artists is %s" % artist)
     except:
        song = ""
@@ -498,19 +513,19 @@ def main():
 
 if __name__ == "__main__":
     _addon_ = xbmcaddon.Addon()
-    setfilemenu = xbmcaddon.Addon("plugin.audio.radio-data").getSettingBool("custom_json")
+    setfilemenu = xbmcaddon.Addon("plugin.audio.radio_data").getSettingBool("custom_json")
     xbmc.log("Radio-data: setfilemenu is %s" % setfilemenu)
     if setfilemenu :
-        pathfilemenu = xbmcaddon.Addon("plugin.audio.radio-data").getSetting("custom_json_file")
+        pathfilemenu = xbmcaddon.Addon("plugin.audio.radio_data").getSetting("custom_json_file")
     else :
-        filemenu = "radio-data.json"
+        filemenu = "radio_data.json"
         path = _addon_.getAddonInfo("path")
         pathfilemenu = os.path.join(path, filemenu)
     xbmc.log("Radio-data: pathfilemenu is %s" % pathfilemenu)
-    setfallback = xbmcaddon.Addon("plugin.audio.radio-data").getSettingBool("fallback")
+    setfallback = xbmcaddon.Addon("plugin.audio.radio_data").getSettingBool("fallback")
     xbmc.log("Radio-data: setfallback is %s" % setfallback)
     if setfallback :
-        pathfallback = xbmcaddon.Addon("plugin.audio.radio-data").getSetting("fallback_path")
+        pathfallback = xbmcaddon.Addon("plugin.audio.radio_data").getSetting("fallback_path")
         # Temporary file for Artist slide show.
         fallback = "fallback.jpg" 
         pathfilefallback = os.path.join(pathfallback, fallback)
