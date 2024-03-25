@@ -1,9 +1,9 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<addons><addon id="plugin.audio.radio_data" name="Radio data" provider-name="Gilles Labrot" version="0.0.5">
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.audio.radio_data" name="Radio data" provider-name="Gilles Labrot" version="0.0.5">
 	<requires>
 		<import addon="xbmc.python" version="3.0.0" />
 		<import addon="script.module.requests" version="2.22.0+matrix.1" />
-		<import addon="script.module.beautifulsoup4" version="4.3.0" />
+		<import addon="script.module.beautifulsoup4" version="4.3.0"/>
 		<import addon="script.module.kodi-six" />
 	</requires>
 	<extension library="addon.py" point="xbmc.python.pluginsource">
@@ -11,14 +11,14 @@
 	</extension>
 	<extension point="xbmc.addon.metadata">
 		<summary lang="en_gb">Listen to custom radio streams with station fanart and on-screen track information</summary>
-		<description lang="en_gb" />
-		<disclaimer lang="en_gb" />
-		<language />
+		<description lang="en_gb"/>
+		<disclaimer lang="en_gb"/>
+		<language/>
 		<platform>all</platform>
-		<license />
-		<forum />
-		<website />
-		<email />
+		<license/>
+		<forum/>
+		<website/>
+		<email/>
 		<source>https://github.com/glab84/plugin.audio.radio_data</source>
 		<news>
 			v0.0.4 (2024-02-24)
@@ -33,8 +33,8 @@
 		</assets>
 	</extension>
 	<extension point="xbmc.addon.repository">
-		<info />
-		<checksum />
-		<datadir zip="true" />
+		<info></info>
+		<checksum></checksum>
+		<datadir zip="true"></datadir>
 	</extension>
-</addon></addons>
+</addon>
