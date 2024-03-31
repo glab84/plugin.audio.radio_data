@@ -32,9 +32,4 @@
 			<icon>resources/media/icon.png</icon>
 		</assets>
 	</extension>
-	<extension point="xbmc.addon.repository">
-		<info />
-		<checksum />
-		<datadir zip="true" />
-	</extension>
 </addon></addons>
